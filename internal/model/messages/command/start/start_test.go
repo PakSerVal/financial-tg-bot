@@ -33,6 +33,6 @@ func Test_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
-		"Бот для учета финансов\n\nДобавить трату: 350 еда\n\nПолучить отчет: \n- за сегодня: /today\n- за месяц: /month\n- за год: /year\n",
+		"Бот для учета финансов\n\nДобавить трату: 350 продукты\n\nПолучить отчет: \n- за сегодня: /today\n- за месяц: /month\n- за год: /year\n",
 		res)
 }
