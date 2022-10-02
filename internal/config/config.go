@@ -1,38 +1,24 @@
 package config
 
 import (
-	"os"
-
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
+	"flag"
 )
 
-const configFile = "data/config.yaml"
+const defaultToken = "5332081649:AAHXDWuBHPleSVXzo8w8j2L8NaqbOll7B34"
 
 type Config struct {
-	Token string `yaml:"token"`
+	token string
 }
 
-type Service struct {
-	config Config
+func New() (*Config, error) {
+	c := &Config{}
+
+	flag.StringVar(&c.token, "token", defaultToken, "bot token")
+	flag.Parse()
+
+	return c, nil
 }
 
-func New() (*Service, error) {
-	s := &Service{}
-
-	rawYAML, err := os.ReadFile(configFile)
-	if err != nil {
-		return nil, errors.Wrap(err, "reading config file")
-	}
-
-	err = yaml.Unmarshal(rawYAML, &s.config)
-	if err != nil {
-		return nil, errors.Wrap(err, "parsing yaml")
-	}
-
-	return s, nil
-}
-
-func (s *Service) Token() string {
-	return s.config.Token
+func (c *Config) Token() string {
+	return c.token
 }
