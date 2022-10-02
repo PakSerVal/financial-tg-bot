@@ -2,9 +2,9 @@ package spend
 
 import "time"
 
-type Record struct {
+type SpendRecord struct {
 	ID       int64
-	Sum      int64
+	Price    int64
 	Category string
 	DateTime time.Time
 }

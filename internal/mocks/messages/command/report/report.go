@@ -36,10 +36,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetByTimeSince mocks base method.
-func (m *MockRepository) GetByTimeSince(timeSince time.Time) ([]spend.Record, error) {
+func (m *MockRepository) GetByTimeSince(timeSince time.Time) ([]spend.SpendRecord, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByTimeSince", timeSince)
-	ret0, _ := ret[0].([]spend.Record)
+	ret0, _ := ret[0].([]spend.SpendRecord)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

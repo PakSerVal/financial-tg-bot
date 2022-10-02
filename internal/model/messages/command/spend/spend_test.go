@@ -11,49 +11,40 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
-func Test_NotSupported(t *testing.T) {
+func TestSpendCommand_Process(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	next := mocks.NewMockCommand(ctrl)
 	repo := mock_spend.NewMockRepository(ctrl)
 
 	command := New(next, repo)
 
-	next.EXPECT().Process("not supported text").Return("привет", nil)
+	gomock.InOrder(
+		next.EXPECT().Process("not supported text").Return("привет", nil),
+		repo.EXPECT().Save(int64(123), "такси").Return(spend.SpendRecord{}, errors.New("some error")),
+		repo.EXPECT().Save(int64(123), "такси").Return(spend.SpendRecord{
+			ID:       1,
+			Price:    123,
+			Category: "Такси",
+		}, nil),
+	)
 
-	res, err := command.Process("not supported text")
+	t.Run("not supported", func(t *testing.T) {
+		res, err := command.Process("not supported text")
 
-	assert.NoError(t, err)
-	assert.Equal(t, "привет", res)
-}
+		assert.NoError(t, err)
+		assert.Equal(t, "привет", res)
+	})
 
-func Test_RepoError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	repo := mock_spend.NewMockRepository(ctrl)
+	t.Run("repo error", func(t *testing.T) {
+		_, err := command.Process("123 такси")
 
-	command := New(next, repo)
+		assert.Error(t, err)
+	})
 
-	repo.EXPECT().Save(int64(123), "такси").Return(spend.Record{}, errors.New("some error"))
+	t.Run("success", func(t *testing.T) {
+		res, err := command.Process("123 такси")
 
-	_, err := command.Process("123 такси")
-
-	assert.Error(t, err)
-}
-
-func Test_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	repo := mock_spend.NewMockRepository(ctrl)
-	repo.EXPECT().Save(int64(123), "такси").Return(spend.Record{
-		ID:       1,
-		Sum:      123,
-		Category: "Такси",
-	}, nil)
-
-	command := New(next, repo)
-
-	res, err := command.Process("123 такси")
-
-	assert.NoError(t, err)
-	assert.Equal(t, "Добавлена трата: Такси 123 руб.", res)
+		assert.NoError(t, err)
+		assert.Equal(t, "Добавлена трата: Такси 123 руб.", res)
+	})
 }

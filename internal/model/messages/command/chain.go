@@ -8,12 +8,12 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/spend"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/start"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/unknown"
-	spend2 "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	spend_repo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
 type Repository interface {
-	Save(sum int64, category string) (spend2.Record, error)
-	GetByTimeSince(timeSince time.Time) ([]spend2.Record, error)
+	Save(sum int64, category string) (spend_repo.SpendRecord, error)
+	GetByTimeSince(timeSince time.Time) ([]spend_repo.SpendRecord, error)
 }
 
 func MakeChain(repo Repository) messages.Command {

@@ -1,7 +1,6 @@
 package report
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -12,106 +11,94 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
-func Test_NotSupported(t *testing.T) {
+func TestReportCommand_ProcessFailed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	next := mocks.NewMockCommand(ctrl)
 	repo := mock_report.NewMockRepository(ctrl)
-
 	command := New(next, repo)
 
-	next.EXPECT().Process("not supported text").Return("привет", nil)
+	gomock.InOrder(
+		next.EXPECT().Process("not supported text").Return("привет", nil),
+		repo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{}, errors.New("some error")).Times(1),
+		repo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{}, nil).Times(1),
+		repo.EXPECT().GetByTimeSince(gomock.Any()).Times(3).Return([]spend.SpendRecord{
+			{
+				ID:       1,
+				Price:    100,
+				Category: "Такси",
+			},
+			{
+				ID:       2,
+				Price:    400,
+				Category: "Такси",
+			},
+			{
+				ID:       3,
+				Price:    200,
+				Category: "Такси",
+			},
+			{
+				ID:       4,
+				Price:    200,
+				Category: "Продукты",
+			},
+			{
+				ID:       4,
+				Price:    900,
+				Category: "Продукты",
+			},
+			{
+				ID:       5,
+				Price:    2000,
+				Category: "Инвестиции",
+			},
+		}, nil),
+	)
 
-	res, err := command.Process("not supported text")
+	t.Run("not supported", func(t *testing.T) {
+		res, err := command.Process("not supported text")
 
-	assert.NoError(t, err)
-	assert.Equal(t, "привет", res)
-}
+		assert.NoError(t, err)
+		assert.Equal(t, "привет", res)
+	})
 
-func Test_RepoError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	repo := mock_report.NewMockRepository(ctrl)
-	repo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.Record{}, errors.New("some error"))
+	t.Run("repo error", func(t *testing.T) {
+		_, err := command.Process("/today")
 
-	command := New(next, repo)
+		assert.Error(t, err)
+	})
 
-	_, err := command.Process("/today")
+	t.Run("no records", func(t *testing.T) {
+		res, err := command.Process("/today")
 
-	assert.Error(t, err)
-}
+		assert.NoError(t, err)
+		assert.Equal(t, "Расходов сегодня нет", res)
+	})
 
-func Test_NoRecords(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	repo := mock_report.NewMockRepository(ctrl)
-	repo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.Record{}, nil)
-
-	command := New(next, repo)
-
-	res, err := command.Process("/today")
-
-	assert.NoError(t, err)
-	assert.Equal(t, "Расходов сегодня нет", res)
-}
-
-func Test_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	repo := mock_report.NewMockRepository(ctrl)
-	repo.EXPECT().GetByTimeSince(gomock.Any()).Times(3).Return([]spend.Record{
-		{
-			ID:       1,
-			Sum:      100,
-			Category: "Такси",
-		},
-		{
-			ID:       2,
-			Sum:      400,
-			Category: "Такси",
-		},
-		{
-			ID:       3,
-			Sum:      200,
-			Category: "Такси",
-		},
-		{
-			ID:       4,
-			Sum:      200,
-			Category: "Продукты",
-		},
-		{
-			ID:       4,
-			Sum:      900,
-			Category: "Продукты",
-		},
-		{
-			ID:       5,
-			Sum:      2000,
-			Category: "Инвестиции",
-		},
-	}, nil)
-
-	cases := []struct {
+	sucessCases := []struct {
+		name    string
 		command string
 		wanted  string
 	}{
 		{
+			name:    "today",
 			command: "/today",
 			wanted:  "Расходы сегодня:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
 		},
 		{
+			name:    "month",
 			command: "/month",
 			wanted:  "Расходы в текущем месяце:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
 		},
 		{
+			name:    "year",
 			command: "/year",
 			wanted:  "Расходы в этом году:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
 		},
 	}
 
-	for i, c := range cases {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			command := New(next, repo)
+	for _, c := range sucessCases {
+		t.Run(c.name, func(t *testing.T) {
 			res, err := command.Process(c.command)
 
 			assert.NoError(t, err)

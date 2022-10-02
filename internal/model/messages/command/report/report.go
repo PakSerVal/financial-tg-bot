@@ -11,13 +11,17 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
+const CommandToday = "/today"
+const CommandMonth = "/month"
+const CommandYear = "/year"
+
 type reportCommand struct {
 	next messages.Command
 	repo Repository
 }
 
 type Repository interface {
-	GetByTimeSince(timeSince time.Time) ([]spend.Record, error)
+	GetByTimeSince(timeSince time.Time) ([]spend.SpendRecord, error)
 }
 
 func New(next messages.Command, repo Repository) *reportCommand {
@@ -30,17 +34,17 @@ func New(next messages.Command, repo Repository) *reportCommand {
 func (s *reportCommand) Process(msgText string) (string, error) {
 	now := time.Now()
 	switch msgText {
-	case "/today":
+	case CommandToday:
 		return s.makeReport(
 			time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()),
 			"сегодня",
 		)
-	case "/month":
+	case CommandMonth:
 		return s.makeReport(
 			time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()),
 			"в текущем месяце",
 		)
-	case "/year":
+	case CommandYear:
 		return s.makeReport(
 			time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location()),
 			"в этом году",
@@ -69,10 +73,10 @@ func (s *reportCommand) makeReport(timeSince time.Time, timeRangePrefix string) 
 	return "Расходы " + timeRangePrefix + ":\n" + strings.Join(msgTextParts, "\n"), nil
 }
 
-func groupRecords(records []spend.Record) map[string]int64 {
+func groupRecords(records []spend.SpendRecord) map[string]int64 {
 	m := map[string]int64{}
 	for _, record := range records {
-		m[record.Category] += record.Sum
+		m[record.Category] += record.Price
 	}
 
 	return m

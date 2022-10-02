@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatal("tg client init failed:", err)
 	}
+
 	repo := inmemory.New()
 	msgModel := messages.New(tgClient, command.MakeChain(repo))
 

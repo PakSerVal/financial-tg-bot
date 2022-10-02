@@ -16,7 +16,7 @@ func Test_Save(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, int64(1), res.ID)
-	assert.Equal(t, int64(12345), res.Sum)
+	assert.Equal(t, int64(12345), res.Price)
 	assert.Equal(t, "category", res.Category)
 }
 
@@ -24,57 +24,57 @@ func Test_GetByTimeSince(t *testing.T) {
 	now := time.Now()
 	repo := New()
 
-	recordHourAgo := spend.Record{
+	recordHourAgo := spend.SpendRecord{
 		ID:       1,
-		Sum:      1234,
+		Price:    1234,
 		Category: "cat1",
 		DateTime: now.Add(-1 * time.Hour),
 	}
-	recordTwoHourAgo := spend.Record{
+	recordTwoHourAgo := spend.SpendRecord{
 		ID:       2,
-		Sum:      5678,
+		Price:    5678,
 		Category: "cat2",
 		DateTime: now.Add(-2 * time.Hour),
 	}
-	recordTwoYearsAgo := spend.Record{
+	recordTwoYearsAgo := spend.SpendRecord{
 		ID:       3,
-		Sum:      5678,
+		Price:    5678,
 		Category: "cat3",
 		DateTime: now.AddDate(-2, 0, 0),
 	}
-	recordMonthAgo := spend.Record{
+	recordMonthAgo := spend.SpendRecord{
 		ID:       4,
-		Sum:      5678,
+		Price:    5678,
 		Category: "cat4",
 		DateTime: now.AddDate(0, -1, 0),
 	}
-	recordFiveDaysAgo := spend.Record{
+	recordFiveDaysAgo := spend.SpendRecord{
 		ID:       5,
-		Sum:      5678,
+		Price:    5678,
 		Category: "cat5",
 		DateTime: now.AddDate(0, 0, -5),
 	}
 
-	repo.records = []spend.Record{recordHourAgo, recordTwoHourAgo, recordTwoYearsAgo, recordMonthAgo, recordFiveDaysAgo}
+	repo.records = []spend.SpendRecord{recordHourAgo, recordTwoHourAgo, recordTwoYearsAgo, recordMonthAgo, recordFiveDaysAgo}
 	cases := []struct {
 		timeSince time.Time
-		wanted    []spend.Record
+		wanted    []spend.SpendRecord
 	}{
 		{
 			timeSince: time.Now().AddDate(-1, 0, 0),
-			wanted:    []spend.Record{recordHourAgo, recordTwoHourAgo, recordMonthAgo, recordFiveDaysAgo},
+			wanted:    []spend.SpendRecord{recordHourAgo, recordTwoHourAgo, recordMonthAgo, recordFiveDaysAgo},
 		},
 		{
 			timeSince: time.Now().AddDate(0, 0, -1),
-			wanted:    []spend.Record{recordHourAgo, recordTwoHourAgo},
+			wanted:    []spend.SpendRecord{recordHourAgo, recordTwoHourAgo},
 		},
 		{
 			timeSince: time.Now().AddDate(0, -1, 0),
-			wanted:    []spend.Record{recordHourAgo, recordTwoHourAgo, recordFiveDaysAgo},
+			wanted:    []spend.SpendRecord{recordHourAgo, recordTwoHourAgo, recordFiveDaysAgo},
 		},
 		{
 			timeSince: time.Now().AddDate(0, -3, 0),
-			wanted:    []spend.Record{recordHourAgo, recordTwoHourAgo, recordMonthAgo, recordFiveDaysAgo},
+			wanted:    []spend.SpendRecord{recordHourAgo, recordTwoHourAgo, recordMonthAgo, recordFiveDaysAgo},
 		},
 	}
 

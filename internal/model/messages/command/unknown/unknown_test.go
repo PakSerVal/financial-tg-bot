@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Success(t *testing.T) {
+func TestUnknownCommand_Process(t *testing.T) {
 	command := New()
 
 	res, err := command.Process("unknown command")

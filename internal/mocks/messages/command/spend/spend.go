@@ -35,10 +35,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Save mocks base method.
-func (m *MockRepository) Save(sum int64, category string) (spend.Record, error) {
+func (m *MockRepository) Save(sum int64, category string) (spend.SpendRecord, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", sum, category)
-	ret0, _ := ret[0].(spend.Record)
+	ret0, _ := ret[0].(spend.SpendRecord)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

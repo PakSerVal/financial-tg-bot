@@ -8,6 +8,9 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
 )
 
+const updateOffset = 0
+const updateTimeout = 60
+
 type TokenGetter interface {
 	Token() string
 }
@@ -19,7 +22,7 @@ type Client struct {
 func New(tokenGetter TokenGetter) (*Client, error) {
 	client, err := tgbotapi.NewBotAPI(tokenGetter.Token())
 	if err != nil {
-		return nil, errors.Wrap(err, "NewBotAPI")
+		return nil, errors.Wrap(err, "failed to create new bot")
 	}
 
 	return &Client{
@@ -36,8 +39,8 @@ func (c *Client) SendMessage(text string, userID int64) error {
 }
 
 func (c *Client) ListenUpdates(msgModel *messages.Model) {
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	u := tgbotapi.NewUpdate(updateOffset)
+	u.Timeout = updateTimeout
 
 	updates := c.client.GetUpdatesChan(u)
 

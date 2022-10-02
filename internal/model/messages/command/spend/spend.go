@@ -16,7 +16,7 @@ type spendCommand struct {
 }
 
 type Repository interface {
-	Save(sum int64, category string) (spend.Record, error)
+	Save(sum int64, category string) (spend.SpendRecord, error)
 }
 
 func New(next messages.Command, repo Repository) *spendCommand {
@@ -27,13 +27,13 @@ func New(next messages.Command, repo Repository) *spendCommand {
 }
 
 func (s *spendCommand) Process(msgText string) (string, error) {
-	if sum, category, ok := parse(msgText); ok {
-		rec, err := s.repo.Save(sum, category)
+	if price, category, ok := parse(msgText); ok {
+		rec, err := s.repo.Save(price, category)
 		if err != nil {
 			return "", errors.Wrap(err, "repo: save spend record error")
 		}
 
-		return fmt.Sprintf("Добавлена трата: %s %d руб.", rec.Category, rec.Sum), nil
+		return fmt.Sprintf("Добавлена трата: %s %d руб.", rec.Category, rec.Price), nil
 	}
 
 	return s.next.Process(msgText)
@@ -45,10 +45,10 @@ func parse(msgText string) (int64, string, bool) {
 		return 0, "", false
 	}
 
-	sum, err := strconv.Atoi(parts[0])
+	price, err := strconv.Atoi(parts[0])
 	if err != nil {
 		return 0, "", false
 	}
 
-	return int64(sum), parts[1], true
+	return int64(price), parts[1], true
 }

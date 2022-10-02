@@ -7,6 +7,7 @@ package mock_messages
 import (
 	reflect "reflect"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -69,6 +70,20 @@ func NewMockMessageSender(ctrl *gomock.Controller) *MockMessageSender {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMessageSender) EXPECT() *MockMessageSenderMockRecorder {
 	return m.recorder
+}
+
+// GetUpdatesChan mocks base method.
+func (m *MockMessageSender) GetUpdatesChan() tgbotapi.UpdatesChannel {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUpdatesChan")
+	ret0, _ := ret[0].(tgbotapi.UpdatesChannel)
+	return ret0
+}
+
+// GetUpdatesChan indicates an expected call of GetUpdatesChan.
+func (mr *MockMessageSenderMockRecorder) GetUpdatesChan() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdatesChan", reflect.TypeOf((*MockMessageSender)(nil).GetUpdatesChan))
 }
 
 // SendMessage mocks base method.
