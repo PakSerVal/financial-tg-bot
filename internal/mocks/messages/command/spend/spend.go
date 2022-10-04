@@ -6,6 +6,7 @@ package mock_spend
 
 import (
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	spend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
@@ -32,6 +33,21 @@ func NewMockRepository(ctrl *gomock.Controller) *MockRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
+}
+
+// GetByTimeSince mocks base method.
+func (m *MockRepository) GetByTimeSince(timeSince time.Time) ([]spend.SpendRecord, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByTimeSince", timeSince)
+	ret0, _ := ret[0].([]spend.SpendRecord)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByTimeSince indicates an expected call of GetByTimeSince.
+func (mr *MockRepositoryMockRecorder) GetByTimeSince(timeSince interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTimeSince", reflect.TypeOf((*MockRepository)(nil).GetByTimeSince), timeSince)
 }
 
 // Save mocks base method.

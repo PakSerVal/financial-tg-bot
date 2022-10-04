@@ -8,23 +8,22 @@ import (
 
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
+	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/spend"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
-const CommandToday = "/today"
-const CommandMonth = "/month"
-const CommandYear = "/year"
+const (
+	CommandToday = "today"
+	CommandMonth = "month"
+	CommandYear  = "year"
+)
 
 type reportCommand struct {
 	next messages.Command
-	repo Repository
+	repo spendRepo.Repository
 }
 
-type Repository interface {
-	GetByTimeSince(timeSince time.Time) ([]spend.SpendRecord, error)
-}
-
-func New(next messages.Command, repo Repository) *reportCommand {
+func New(next messages.Command, repo spendRepo.Repository) *reportCommand {
 	return &reportCommand{
 		next: next,
 		repo: repo,

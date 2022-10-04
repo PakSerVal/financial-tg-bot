@@ -23,6 +23,5 @@ func main() {
 
 	repo := inmemory.New()
 	msgModel := messages.New(tgClient, command.MakeChain(repo))
-
-	tgClient.ListenUpdates(msgModel)
+	msgModel.ListenIncomingMessages()
 }

@@ -1,15 +1,14 @@
 package tg
 
 import (
-	"log"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
 )
 
-const updateOffset = 0
-const updateTimeout = 60
+const (
+	updateOffset  = 0
+	updateTimeout = 60
+)
 
 type TokenGetter interface {
 	Token() string
@@ -38,25 +37,9 @@ func (c *Client) SendMessage(text string, userID int64) error {
 	return nil
 }
 
-func (c *Client) ListenUpdates(msgModel *messages.Model) {
+func (c *Client) GetUpdatesChan() tgbotapi.UpdatesChannel {
 	u := tgbotapi.NewUpdate(updateOffset)
 	u.Timeout = updateTimeout
 
-	updates := c.client.GetUpdatesChan(u)
-
-	log.Println("listening for messages")
-
-	for update := range updates {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			err := msgModel.IncomingMessage(messages.Message{
-				Text:   update.Message.Text,
-				UserID: update.Message.From.ID,
-			})
-			if err != nil {
-				log.Println("error processing message:", err)
-			}
-		}
-	}
+	return c.client.GetUpdatesChan(u)
 }

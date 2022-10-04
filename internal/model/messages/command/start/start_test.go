@@ -24,7 +24,7 @@ func TestStartCommand_Process(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		res, err := command.Process("/start")
+		res, err := command.Process("start")
 
 		assert.NoError(t, err)
 		assert.Equal(

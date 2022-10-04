@@ -9,35 +9,23 @@ import (
 	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
 )
 
-func Test_CommandProcessError(t *testing.T) {
+func TestModel_ProcessMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	sender := mocks.NewMockMessageSender(ctrl)
 	chain := mocks.NewMockCommand(ctrl)
 	model := New(sender, chain)
 
-	chain.EXPECT().Process("/start").Return("", errors.New("some error"))
-
-	err := model.IncomingMessage(Message{
-		Text:   "/start",
-		UserID: 123,
+	t.Run("chain error", func(t *testing.T) {
+		chain.EXPECT().Process("/start").Return("", errors.New("some error"))
+		err := model.processMessage(Message{Text: "/start"})
+		assert.Error(t, err)
 	})
 
-	assert.Error(t, err)
-}
+	t.Run("sender error", func(t *testing.T) {
+		chain.EXPECT().Process("/start").Return("привет", nil)
+		sender.EXPECT().SendMessage("привет", int64(1)).Return(errors.New("some error"))
 
-func Test_CommandProcessSuccess(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	sender := mocks.NewMockMessageSender(ctrl)
-	sender.EXPECT().SendMessage("привет", int64(123))
-	chain := mocks.NewMockCommand(ctrl)
-	chain.EXPECT().Process("some text").Return("привет", nil)
-	model := New(sender, chain)
-
-	err := model.IncomingMessage(Message{
-		Text:   "some text",
-		UserID: 123,
+		err := model.processMessage(Message{Text: "/start", UserID: 1})
+		assert.Error(t, err)
 	})
-
-	assert.NoError(t, err)
 }

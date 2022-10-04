@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
+type Repository interface {
+	Save(sum int64, category string) (spend.SpendRecord, error)
+	GetByTimeSince(timeSince time.Time) ([]spend.SpendRecord, error)
+}
+
 type spendCommand struct {
 	next messages.Command
 	repo Repository
-}
-
-type Repository interface {
-	Save(sum int64, category string) (spend.SpendRecord, error)
 }
 
 func New(next messages.Command, repo Repository) *spendCommand {

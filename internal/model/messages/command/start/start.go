@@ -2,6 +2,8 @@ package start
 
 import "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
 
+const cmdName = "start"
+
 const menuText = "Бот для учета финансов\n\n" +
 	"Добавить трату: 350 продукты\n\n" +
 	"Получить отчет: \n" +
@@ -20,7 +22,7 @@ func New(next messages.Command) *startCommand {
 }
 
 func (s *startCommand) Process(msgText string) (string, error) {
-	if msgText == "/start" {
+	if msgText == cmdName {
 		return menuText, nil
 	}
 

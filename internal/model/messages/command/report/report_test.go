@@ -7,14 +7,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
-	mock_report "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages/command/report"
+	mock_spend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages/command/spend"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
 func TestReportCommand_ProcessFailed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	next := mocks.NewMockCommand(ctrl)
-	repo := mock_report.NewMockRepository(ctrl)
+	repo := mock_spend.NewMockRepository(ctrl)
 	command := New(next, repo)
 
 	gomock.InOrder(
@@ -63,13 +63,13 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	})
 
 	t.Run("repo error", func(t *testing.T) {
-		_, err := command.Process("/today")
+		_, err := command.Process("today")
 
 		assert.Error(t, err)
 	})
 
 	t.Run("no records", func(t *testing.T) {
-		res, err := command.Process("/today")
+		res, err := command.Process("today")
 
 		assert.NoError(t, err)
 		assert.Equal(t, "Расходов сегодня нет", res)
@@ -82,17 +82,17 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	}{
 		{
 			name:    "today",
-			command: "/today",
+			command: "today",
 			wanted:  "Расходы сегодня:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
 		},
 		{
 			name:    "month",
-			command: "/month",
+			command: "month",
 			wanted:  "Расходы в текущем месяце:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
 		},
 		{
 			name:    "year",
-			command: "/year",
+			command: "year",
 			wanted:  "Расходы в этом году:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
 		},
 	}

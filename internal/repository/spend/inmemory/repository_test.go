@@ -10,7 +10,7 @@ import (
 )
 
 func Test_Save(t *testing.T) {
-	repo := New()
+	repo := inmemory{}
 	res, err := repo.Save(12345, "category")
 
 	assert.NoError(t, err)
@@ -22,7 +22,7 @@ func Test_Save(t *testing.T) {
 
 func Test_GetByTimeSince(t *testing.T) {
 	now := time.Now()
-	repo := New()
+	repo := inmemory{}
 
 	recordHourAgo := spend.SpendRecord{
 		ID:       1,

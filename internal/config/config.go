@@ -4,8 +4,6 @@ import (
 	"flag"
 )
 
-const defaultToken = "5332081649:AAHXDWuBHPleSVXzo8w8j2L8NaqbOll7B34"
-
 type Config struct {
 	token string
 }
@@ -13,7 +11,7 @@ type Config struct {
 func New() (*Config, error) {
 	c := &Config{}
 
-	flag.StringVar(&c.token, "token", defaultToken, "bot token")
+	flag.StringVar(&c.token, "token", "", "bot token")
 	flag.Parse()
 
 	return c, nil

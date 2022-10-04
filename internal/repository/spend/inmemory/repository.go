@@ -3,6 +3,7 @@ package inmemory
 import (
 	"time"
 
+	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/spend"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
@@ -11,7 +12,7 @@ type inmemory struct {
 	records   []spend.SpendRecord
 }
 
-func New() *inmemory {
+func New() spendRepo.Repository {
 	return &inmemory{
 		lastIndex: 0,
 		records:   []spend.SpendRecord{},
