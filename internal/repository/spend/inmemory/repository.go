@@ -13,10 +13,7 @@ type inmemory struct {
 }
 
 func New() spendRepo.Repository {
-	return &inmemory{
-		lastIndex: 0,
-		records:   []spend.SpendRecord{},
-	}
+	return &inmemory{}
 }
 
 func (i *inmemory) Save(sum int64, category string) (spend.SpendRecord, error) {

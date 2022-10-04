@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	CommandToday = "today"
-	CommandMonth = "month"
-	CommandYear  = "year"
+	commandToday = "today"
+	commandMonth = "month"
+	commandYear  = "year"
 )
 
 type reportCommand struct {
@@ -33,17 +33,17 @@ func New(next messages.Command, repo spendRepo.Repository) *reportCommand {
 func (s *reportCommand) Process(msgText string) (string, error) {
 	now := time.Now()
 	switch msgText {
-	case CommandToday:
+	case commandToday:
 		return s.makeReport(
 			time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()),
 			"сегодня",
 		)
-	case CommandMonth:
+	case commandMonth:
 		return s.makeReport(
 			time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()),
 			"в текущем месяце",
 		)
-	case CommandYear:
+	case commandYear:
 		return s.makeReport(
 			time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location()),
 			"в этом году",
