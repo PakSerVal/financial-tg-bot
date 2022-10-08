@@ -20,6 +20,8 @@ run:
 
 generate: install-mockgen
 	${MOCKGEN} -source=internal/model/messages/incoming_msg.go -destination=internal/mocks/messages/messages_mocks.go
+	${MOCKGEN} -source=internal/model/messages/command/report/report.go -destination=internal/mocks/messages/command/report/report.go
+	${MOCKGEN} -source=internal/model/messages/command/spend/spend.go -destination=internal/mocks/messages/command/spend/spend.go
 
 lint: install-lint
 	${LINTBIN} run
