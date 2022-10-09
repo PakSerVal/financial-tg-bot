@@ -9,6 +9,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	gomock "github.com/golang/mock/gomock"
+	dto "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
 )
 
 // MockCommand is a mock of Command interface.
@@ -35,18 +36,18 @@ func (m *MockCommand) EXPECT() *MockCommandMockRecorder {
 }
 
 // Process mocks base method.
-func (m *MockCommand) Process(msgText string) (string, error) {
+func (m *MockCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Process", msgText)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "Process", in)
+	ret0, _ := ret[0].(dto.MessageOut)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Process indicates an expected call of Process.
-func (mr *MockCommandMockRecorder) Process(msgText interface{}) *gomock.Call {
+func (mr *MockCommandMockRecorder) Process(in interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockCommand)(nil).Process), msgText)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockCommand)(nil).Process), in)
 }
 
 // MockMessageSender is a mock of MessageSender interface.
@@ -87,15 +88,15 @@ func (mr *MockMessageSenderMockRecorder) GetUpdatesChan() *gomock.Call {
 }
 
 // SendMessage mocks base method.
-func (m *MockMessageSender) SendMessage(text string, userID int64) error {
+func (m *MockMessageSender) SendMessage(msgOut dto.MessageOut, userID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMessage", text, userID)
+	ret := m.ctrl.Call(m, "SendMessage", msgOut, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendMessage indicates an expected call of SendMessage.
-func (mr *MockMessageSenderMockRecorder) SendMessage(text, userID interface{}) *gomock.Call {
+func (mr *MockMessageSenderMockRecorder) SendMessage(msgOut, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockMessageSender)(nil).SendMessage), text, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockMessageSender)(nil).SendMessage), msgOut, userID)
 }

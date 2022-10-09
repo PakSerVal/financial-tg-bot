@@ -8,7 +8,11 @@ import (
 
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
-	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/currency"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/inmemory"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
@@ -18,64 +22,121 @@ const (
 	commandYear  = "year"
 )
 
-type reportCommand struct {
-	next messages.Command
-	repo spendRepo.Repository
+var currencyUnitName = map[string]string{
+	currency.Usd: "дол",
+	currency.Rub: "руб",
+	currency.Cny: "юан",
+	currency.Eur: "евро",
 }
 
-func New(next messages.Command, repo spendRepo.Repository) *reportCommand {
+type reportCommand struct {
+	next                 messages.Command
+	repo                 spend.Repository
+	selectedCurrencyRepo selected_currency.Repository
+	currencyRateRepo     currency_rate.Repository
+}
+
+func New(
+	next messages.Command,
+	repo spend.Repository,
+	selectedCurrencyRepo selected_currency.Repository,
+	currencyRateRepo currency_rate.Repository,
+) messages.Command {
 	return &reportCommand{
-		next: next,
-		repo: repo,
+		next:                 next,
+		repo:                 repo,
+		selectedCurrencyRepo: selectedCurrencyRepo,
+		currencyRateRepo:     currencyRateRepo,
 	}
 }
 
-func (s *reportCommand) Process(msgText string) (string, error) {
+func (r *reportCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
 	now := time.Now()
-	switch msgText {
+	switch in.Text {
 	case commandToday:
-		return s.makeReport(
+		return r.makeReport(
+			in.UserId,
 			time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()),
 			"сегодня",
 		)
 	case commandMonth:
-		return s.makeReport(
+		return r.makeReport(
+			in.UserId,
 			time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()),
 			"в текущем месяце",
 		)
 	case commandYear:
-		return s.makeReport(
+		return r.makeReport(
+			in.UserId,
 			time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location()),
 			"в этом году",
 		)
 	}
 
-	return s.next.Process(msgText)
+	return r.next.Process(in)
 }
 
-func (s *reportCommand) makeReport(timeSince time.Time, timeRangePrefix string) (string, error) {
-	records, err := s.repo.GetByTimeSince(timeSince)
+func (r *reportCommand) makeReport(userId int64, timeSince time.Time, timeRangePrefix string) (dto.MessageOut, error) {
+	out := dto.MessageOut{}
+	records, err := r.repo.GetByTimeSince(timeSince)
 	if err != nil {
-		return "", errors.Wrap(err, "repo: get by time since")
+		return out, errors.Wrap(err, "repo: get by time since")
 	}
 
 	if len(records) == 0 {
-		return "Расходов " + timeRangePrefix + " нет", err
+		out.Text = "Расходов " + timeRangePrefix + " нет"
+		return out, nil
+	}
+
+	cur, err := r.getSelectedCurrency(userId)
+	if err != nil {
+		return out, errors.Wrap(err, "get selected currency error")
+	}
+
+	unitName, ok := currencyUnitName[cur.Currency]
+	if !ok {
+		unitName = "руб"
+	}
+
+	rate, err := r.currencyRateRepo.GetRateByCurrency(cur.Currency)
+	if errors.Is(err, currency_rate.ErrCurrencyRateNotFound) {
+		rate.Value = 1
+	} else {
+		if err != nil {
+			return out, errors.Wrap(err, "get currency rates error")
+		}
 	}
 
 	var msgTextParts []string
-	for category, sum := range groupRecords(records) {
-		msgTextParts = append(msgTextParts, fmt.Sprintf("%s - %d руб.", category, sum))
+	for category, sum := range groupRecords(records, rate.Value) {
+		msgTextParts = append(msgTextParts, fmt.Sprintf("%s - %.2f %s.", category, sum, unitName))
 	}
 	sort.Strings(msgTextParts)
 
-	return "Расходы " + timeRangePrefix + ":\n" + strings.Join(msgTextParts, "\n"), nil
+	out.Text = "Расходы " + timeRangePrefix + ":\n" + strings.Join(msgTextParts, "\n")
+	return out, nil
 }
 
-func groupRecords(records []spend.SpendRecord) map[string]int64 {
-	m := map[string]int64{}
+func (r *reportCommand) getSelectedCurrency(userId int64) (selected_currency.SelectedCurrency, error) {
+	selectedCurrency, err := r.selectedCurrencyRepo.GetSelectedCurrency(userId)
+
+	if errors.Is(err, inmemory.CurrencyNotFound) {
+		selectedCurrency.Currency = "руб"
+		return selectedCurrency, nil
+	}
+
+	if err != nil {
+		return selectedCurrency, err
+	}
+
+	return selectedCurrency, nil
+}
+
+func groupRecords(records []spend.SpendRecord, rate float64) map[string]float64 {
+	m := map[string]float64{}
 	for _, record := range records {
-		m[record.Category] += record.Price
+		price := record.Price / rate
+		m[record.Category] += price
 	}
 
 	return m

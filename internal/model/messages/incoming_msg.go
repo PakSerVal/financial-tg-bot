@@ -3,15 +3,16 @@ package messages
 import (
 	"log"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5" // <-- Вот это пакет приходится импортировать
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
 )
 
 type Command interface {
-	Process(msgText string) (string, error)
+	Process(in dto.MessageIn) (dto.MessageOut, error)
 }
 
 type MessageSender interface {
-	SendMessage(text string, userID int64) error
+	SendMessage(msgOut dto.MessageOut, userID int64) error
 	GetUpdatesChan() tgbotapi.UpdatesChannel
 }
 
@@ -27,11 +28,6 @@ func New(tgClient MessageSender, commandChain Command) *Model {
 	}
 }
 
-type Message struct {
-	Text   string
-	UserID int64
-}
-
 func (s *Model) ListenIncomingMessages() {
 	log.Println("listening for messages")
 	ch := s.tgClient.GetUpdatesChan()
@@ -44,10 +40,7 @@ func (s *Model) ListenIncomingMessages() {
 			if update.Message.IsCommand() {
 				text = update.Message.Command()
 			}
-			err := s.processMessage(Message{
-				Text:   text,
-				UserID: update.Message.From.ID,
-			})
+			err := s.processMessage(text, update.Message.From.ID)
 
 			if err != nil {
 				log.Println("error processing message:", err)
@@ -56,11 +49,14 @@ func (s *Model) ListenIncomingMessages() {
 	}
 }
 
-func (s *Model) processMessage(message Message) error {
-	msgText, err := s.commandChain.Process(message.Text)
+func (s *Model) processMessage(msgText string, userId int64) error {
+	msgOut, err := s.commandChain.Process(dto.MessageIn{
+		Text:   msgText,
+		UserId: userId,
+	})
 	if err != nil {
 		return err
 	}
 
-	return s.tgClient.SendMessage(msgText, message.UserID)
+	return s.tgClient.SendMessage(msgOut, userId)
 }

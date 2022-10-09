@@ -3,6 +3,7 @@ package tg
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
 )
 
 const (
@@ -29,8 +30,8 @@ func New(tokenGetter TokenGetter) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) SendMessage(text string, userID int64) error {
-	_, err := c.client.Send(tgbotapi.NewMessage(userID, text))
+func (c *Client) SendMessage(msg dto.MessageOut, userID int64) error {
+	_, err := c.client.Send(makeTgMessage(msg, userID))
 	if err != nil {
 		return errors.Wrap(err, "client.Send")
 	}
@@ -42,4 +43,28 @@ func (c *Client) GetUpdatesChan() tgbotapi.UpdatesChannel {
 	u.Timeout = updateTimeout
 
 	return c.client.GetUpdatesChan(u)
+}
+
+func makeTgMessage(msg dto.MessageOut, userID int64) tgbotapi.MessageConfig {
+	tgMessage := tgbotapi.NewMessage(userID, msg.Text)
+	if msg.KeyBoard != nil {
+		tgRows := make([][]tgbotapi.KeyboardButton, 0, len(msg.KeyBoard.Rows))
+		for _, row := range msg.KeyBoard.Rows {
+			tgButtons := make([]tgbotapi.KeyboardButton, 0, len(row.Buttons))
+
+			for _, button := range row.Buttons {
+				tgButtons = append(tgButtons, tgbotapi.NewKeyboardButton(button.Text))
+			}
+
+			tgRows = append(tgRows, tgButtons)
+		}
+
+		if msg.KeyBoard.OneTime {
+			tgMessage.ReplyMarkup = tgbotapi.NewOneTimeReplyKeyboard(tgRows...)
+		} else {
+			tgMessage.ReplyMarkup = tgbotapi.NewReplyKeyboard(tgRows...)
+		}
+	}
+
+	return tgMessage
 }

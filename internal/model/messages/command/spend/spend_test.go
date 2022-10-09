@@ -7,21 +7,22 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
-	mock_spend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages/command/spend"
+	mock_spend2 "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
 func TestSpendCommand_Process(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	next := mocks.NewMockCommand(ctrl)
-	repo := mock_spend.NewMockRepository(ctrl)
+	sendRepo := mock_spend2.NewMockRepository(ctrl)
 
-	command := New(next, repo)
+	command := New(next, sendRepo)
 
 	gomock.InOrder(
-		next.EXPECT().Process("not supported text").Return("привет", nil),
-		repo.EXPECT().Save(int64(123), "такси").Return(spend.SpendRecord{}, errors.New("some error")),
-		repo.EXPECT().Save(int64(123), "такси").Return(spend.SpendRecord{
+		next.EXPECT().Process(dto.MessageIn{Text: "not supported text"}).Return(dto.MessageOut{Text: "привет"}, nil),
+		sendRepo.EXPECT().Save(float64(123), "такси").Return(spend.SpendRecord{}, errors.New("some error")),
+		sendRepo.EXPECT().Save(float64(123), "такси").Return(spend.SpendRecord{
 			ID:       1,
 			Price:    123,
 			Category: "Такси",
@@ -29,22 +30,22 @@ func TestSpendCommand_Process(t *testing.T) {
 	)
 
 	t.Run("not supported", func(t *testing.T) {
-		res, err := command.Process("not supported text")
+		res, err := command.Process(dto.MessageIn{Text: "not supported text"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, "привет", res)
+		assert.Equal(t, dto.MessageOut{Text: "привет"}, res)
 	})
 
 	t.Run("repo error", func(t *testing.T) {
-		_, err := command.Process("123 такси")
+		_, err := command.Process(dto.MessageIn{Text: "123 такси"})
 
 		assert.Error(t, err)
 	})
 
 	t.Run("success", func(t *testing.T) {
-		res, err := command.Process("123 такси")
+		res, err := command.Process(dto.MessageIn{Text: "123 такси"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, "Добавлена трата: Такси 123 руб.", res)
+		assert.Equal(t, dto.MessageOut{Text: "Добавлена трата: Такси 123.00 руб."}, res)
 	})
 }

@@ -3,7 +3,6 @@ package inmemory
 import (
 	"time"
 
-	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/spend"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
@@ -12,11 +11,11 @@ type inmemory struct {
 	records   []spend.SpendRecord
 }
 
-func New() spendRepo.Repository {
+func New() spend.Repository {
 	return &inmemory{}
 }
 
-func (i *inmemory) Save(sum int64, category string) (spend.SpendRecord, error) {
+func (i *inmemory) Save(sum float64, category string) (spend.SpendRecord, error) {
 	rec := spend.SpendRecord{
 		ID:       i.lastIndex + 1,
 		Price:    sum,

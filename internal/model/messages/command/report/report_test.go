@@ -7,102 +7,166 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
-	mock_spend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages/command/spend"
+	mock_currency_rate "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/currency_rate"
+	mock_selected_currency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/selected_currency"
+	mock_spend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	currencyRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
 func TestReportCommand_ProcessFailed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	next := mocks.NewMockCommand(ctrl)
-	repo := mock_spend.NewMockRepository(ctrl)
-	command := New(next, repo)
-
-	gomock.InOrder(
-		next.EXPECT().Process("not supported text").Return("привет", nil),
-		repo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{}, errors.New("some error")).Times(1),
-		repo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{}, nil).Times(1),
-		repo.EXPECT().GetByTimeSince(gomock.Any()).Times(3).Return([]spend.SpendRecord{
-			{
-				ID:       1,
-				Price:    100,
-				Category: "Такси",
-			},
-			{
-				ID:       2,
-				Price:    400,
-				Category: "Такси",
-			},
-			{
-				ID:       3,
-				Price:    200,
-				Category: "Такси",
-			},
-			{
-				ID:       4,
-				Price:    200,
-				Category: "Продукты",
-			},
-			{
-				ID:       4,
-				Price:    900,
-				Category: "Продукты",
-			},
-			{
-				ID:       5,
-				Price:    2000,
-				Category: "Инвестиции",
-			},
-		}, nil),
-	)
+	sendRepo := mock_spend.NewMockRepository(ctrl)
+	selectedCurrencyRepo := mock_selected_currency.NewMockRepository(ctrl)
+	currencyRateRepo := mock_currency_rate.NewMockRepository(ctrl)
+	command := New(next, sendRepo, selectedCurrencyRepo, currencyRateRepo)
 
 	t.Run("not supported", func(t *testing.T) {
-		res, err := command.Process("not supported text")
+		next.EXPECT().Process(dto.MessageIn{Text: "not supported"}).Return(dto.MessageOut{Text: "test"}, nil)
+		res, err := command.Process(dto.MessageIn{Text: "not supported"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, "привет", res)
+		assert.Equal(t, dto.MessageOut{Text: "test"}, res)
 	})
 
-	t.Run("repo error", func(t *testing.T) {
-		_, err := command.Process("today")
+	t.Run("send repo error", func(t *testing.T) {
+		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{}, errors.New("some error")).Times(1)
+		_, err := command.Process(dto.MessageIn{Text: "today"})
 
 		assert.Error(t, err)
 	})
 
 	t.Run("no records", func(t *testing.T) {
-		res, err := command.Process("today")
+		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{}, nil).Times(1)
+		res, err := command.Process(dto.MessageIn{Text: "today"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, "Расходов сегодня нет", res)
+		assert.Equal(t, dto.MessageOut{Text: "Расходов сегодня нет"}, res)
 	})
 
-	sucessCases := []struct {
-		name    string
-		command string
-		wanted  string
+	t.Run("selected currency repo error", func(t *testing.T) {
+		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{{ID: 1}}, nil).Times(1)
+		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(gomock.Any()).Return(selected_currency.SelectedCurrency{}, errors.New("some error")).Times(1)
+		_, err := command.Process(dto.MessageIn{Text: "today"})
+
+		assert.Error(t, err)
+	})
+
+	t.Run("currency rate repo error", func(t *testing.T) {
+		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{{ID: 1}}, nil).Times(1)
+		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(gomock.Any()).Return(selected_currency.SelectedCurrency{Currency: "EUR"}, nil).Times(1)
+		currencyRateRepo.EXPECT().GetRateByCurrency(gomock.Any()).Return(currencyRepo.CurrencyRate{}, errors.New("some error")).Times(1)
+		_, err := command.Process(dto.MessageIn{Text: "today"})
+
+		assert.Error(t, err)
+	})
+}
+
+func TestReportCommand_ProcessSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	next := mocks.NewMockCommand(ctrl)
+	sendRepo := mock_spend.NewMockRepository(ctrl)
+	selectedCurrencyRepo := mock_selected_currency.NewMockRepository(ctrl)
+	currencyRateRepo := mock_currency_rate.NewMockRepository(ctrl)
+	command := New(next, sendRepo, selectedCurrencyRepo, currencyRateRepo)
+
+	sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{
+		{
+			ID:       1,
+			Price:    100,
+			Category: "Такси",
+		},
+		{
+			ID:       2,
+			Price:    400,
+			Category: "Такси",
+		},
+		{
+			ID:       3,
+			Price:    200,
+			Category: "Такси",
+		},
+		{
+			ID:       4,
+			Price:    200,
+			Category: "Продукты",
+		},
+		{
+			ID:       4,
+			Price:    900,
+			Category: "Продукты",
+		},
+		{
+			ID:       5,
+			Price:    2000,
+			Category: "Инвестиции",
+		},
+	}, nil).Times(3)
+
+	tests := []struct {
+		name     string
+		in       dto.MessageIn
+		currency string
+		rate     float64
+		wanted   dto.MessageOut
 	}{
 		{
-			name:    "today",
-			command: "today",
-			wanted:  "Расходы сегодня:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
+			name: "today",
+			in: dto.MessageIn{
+				Text:   "today",
+				UserId: 1,
+			},
+			currency: "USD",
+			rate:     60.1,
+			wanted: dto.MessageOut{
+				Text: "Расходы сегодня:\nИнвестиции - 33.28 дол.\nПродукты - 18.30 дол.\nТакси - 11.65 дол.",
+			},
 		},
 		{
-			name:    "month",
-			command: "month",
-			wanted:  "Расходы в текущем месяце:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
+			name: "month",
+			in: dto.MessageIn{
+				Text:   "month",
+				UserId: 1,
+			},
+			currency: "EUR",
+			rate:     64.3,
+			wanted: dto.MessageOut{
+				Text: "Расходы в текущем месяце:\nИнвестиции - 31.10 евро.\nПродукты - 17.11 евро.\nТакси - 10.89 евро.",
+			},
 		},
 		{
-			name:    "year",
-			command: "year",
-			wanted:  "Расходы в этом году:\nИнвестиции - 2000 руб.\nПродукты - 1100 руб.\nТакси - 700 руб.",
+			name: "year",
+			in: dto.MessageIn{
+				Text:   "year",
+				UserId: 1,
+			},
+			currency: "CNY",
+			rate:     8.76,
+			wanted: dto.MessageOut{
+				Text: "Расходы в этом году:\nИнвестиции - 228.31 юан.\nПродукты - 125.57 юан.\nТакси - 79.91 юан.",
+			},
 		},
 	}
 
-	for _, c := range sucessCases {
-		t.Run(c.name, func(t *testing.T) {
-			res, err := command.Process(c.command)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			selectedCurrencyRepo.EXPECT().GetSelectedCurrency(test.in.UserId).Return(selected_currency.SelectedCurrency{
+				Currency: test.currency,
+				UserId:   test.in.UserId,
+			}, nil).Times(1)
+
+			currencyRateRepo.EXPECT().GetRateByCurrency(test.currency).Return(currencyRepo.CurrencyRate{
+				Name:  test.currency,
+				Value: test.rate,
+			}, nil).Times(1)
+
+			res, err := command.Process(test.in)
 
 			assert.NoError(t, err)
-			assert.Equal(t, c.wanted, res)
+			assert.Equal(t, test.wanted, res)
 		})
 	}
 }

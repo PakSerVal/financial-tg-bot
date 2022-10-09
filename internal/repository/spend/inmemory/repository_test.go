@@ -11,12 +11,12 @@ import (
 
 func Test_Save(t *testing.T) {
 	repo := inmemory{}
-	res, err := repo.Save(12345, "category")
+	res, err := repo.Save(12345.0, "category")
 
 	assert.NoError(t, err)
 
 	assert.Equal(t, int64(1), res.ID)
-	assert.Equal(t, int64(12345), res.Price)
+	assert.Equal(t, float64(12345), res.Price)
 	assert.Equal(t, "category", res.Category)
 }
 
@@ -26,13 +26,13 @@ func Test_GetByTimeSince(t *testing.T) {
 
 	recordHourAgo := spend.SpendRecord{
 		ID:       1,
-		Price:    1234,
+		Price:    1234.123,
 		Category: "cat1",
 		DateTime: now.Add(-1 * time.Hour),
 	}
 	recordTwoHourAgo := spend.SpendRecord{
 		ID:       2,
-		Price:    5678,
+		Price:    5678.32,
 		Category: "cat2",
 		DateTime: now.Add(-2 * time.Hour),
 	}
