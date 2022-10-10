@@ -1,15 +1,15 @@
 package command
 
 import (
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/currency"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/report"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/spend"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/start"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/unknown"
 	currencyRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command/currency"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command/report"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command/start"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command/unknown"
 )
 
 func MakeChain(spendRepo spendRepo.Repository,

@@ -4,15 +4,15 @@ import (
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 type Command interface {
-	Process(in dto.MessageIn) (dto.MessageOut, error)
+	Process(in model.MessageIn) (model.MessageOut, error)
 }
 
 type MessageSender interface {
-	SendMessage(msgOut dto.MessageOut, userID int64) error
+	SendMessage(msgOut model.MessageOut, userID int64) error
 	GetUpdatesChan() tgbotapi.UpdatesChannel
 }
 
@@ -50,7 +50,7 @@ func (s *Model) ListenIncomingMessages() {
 }
 
 func (s *Model) processMessage(msgText string, userId int64) error {
-	msgOut, err := s.commandChain.Process(dto.MessageIn{
+	msgOut, err := s.commandChain.Process(model.MessageIn{
 		Text:   msgText,
 		UserId: userId,
 	})

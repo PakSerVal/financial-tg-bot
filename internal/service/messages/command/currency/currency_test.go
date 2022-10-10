@@ -6,9 +6,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
-	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/mocks"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	mockSelectedCurrency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/mocks"
+	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/mocks"
 )
 
 func TestReportCommand_ProcessFailed(t *testing.T) {
@@ -18,27 +18,27 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	command := New(next, repo)
 
 	gomock.InOrder(
-		next.EXPECT().Process(dto.MessageIn{Text: "not_supported"}).Return(dto.MessageOut{Text: "тест"}, nil),
+		next.EXPECT().Process(model.MessageIn{Text: "not_supported"}).Return(model.MessageOut{Text: "тест"}, nil),
 		repo.EXPECT().SaveSelectedCurrency("EUR", int64(1)).Return(errors.New("some error")),
 		repo.EXPECT().SaveSelectedCurrency("USD", int64(2)).Return(nil),
 	)
 
 	t.Run("not supported", func(t *testing.T) {
-		res, err := command.Process(dto.MessageIn{Text: "not_supported"})
+		res, err := command.Process(model.MessageIn{Text: "not_supported"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, dto.MessageOut{Text: "тест"}, res)
+		assert.Equal(t, model.MessageOut{Text: "тест"}, res)
 	})
 
 	t.Run("currency buttons", func(t *testing.T) {
-		res, err := command.Process(dto.MessageIn{Text: "currency"})
+		res, err := command.Process(model.MessageIn{Text: "currency"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, dto.MessageOut{Text: "В какой валюте вы хотите получать отчеты?", KeyBoard: &dto.KeyBoard{
+		assert.Equal(t, model.MessageOut{Text: "В какой валюте вы хотите получать отчеты?", KeyBoard: &model.KeyBoard{
 			OneTime: true,
-			Rows: []dto.KeyBoardRow{
+			Rows: []model.KeyBoardRow{
 				{
-					Buttons: []dto.KeyBoardButton{
+					Buttons: []model.KeyBoardButton{
 						{Text: Usd}, {Text: Eur}, {Text: Rub}, {Text: Cny},
 					},
 				},
@@ -47,16 +47,16 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	})
 
 	t.Run("saving currency repo error", func(t *testing.T) {
-		res, err := command.Process(dto.MessageIn{Text: "EUR", UserId: 1})
+		res, err := command.Process(model.MessageIn{Text: "EUR", UserId: 1})
 
 		assert.Error(t, err)
-		assert.Equal(t, dto.MessageOut{}, res)
+		assert.Equal(t, model.MessageOut{}, res)
 	})
 
 	t.Run("saving currency repo success", func(t *testing.T) {
-		res, err := command.Process(dto.MessageIn{Text: "USD", UserId: 2})
+		res, err := command.Process(model.MessageIn{Text: "USD", UserId: 2})
 
 		assert.NoError(t, err)
-		assert.Equal(t, dto.MessageOut{Text: "Выбранная валюта: USD"}, res)
+		assert.Equal(t, model.MessageOut{Text: "Выбранная валюта: USD"}, res)
 	})
 }

@@ -1,8 +1,8 @@
 package start
 
 import (
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
 )
 
 const cmdName = "start"
@@ -25,8 +25,8 @@ func New(next messages.Command) messages.Command {
 	}
 }
 
-func (s *startCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
-	out := dto.MessageOut{}
+func (s *startCommand) Process(in model.MessageIn) (model.MessageOut, error) {
+	out := model.MessageOut{}
 	if in.Text == cmdName {
 		out.Text = menuText
 		return out, nil

@@ -1,4 +1,4 @@
-package currency_rate
+package model
 
 type CurrencyRate struct {
 	Name  string

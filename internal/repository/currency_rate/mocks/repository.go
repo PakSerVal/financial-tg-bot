@@ -5,10 +5,10 @@
 package mock_currency_rate
 
 import (
-	reflect "reflect"
+	"reflect"
 
-	gomock "github.com/golang/mock/gomock"
-	currency_rate "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
+	"github.com/golang/mock/gomock"
+	currency_rate "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 // MockRepository is a mock of Repository interface.

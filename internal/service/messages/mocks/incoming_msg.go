@@ -5,11 +5,11 @@
 package mock_messages
 
 import (
-	reflect "reflect"
+	"reflect"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	gomock "github.com/golang/mock/gomock"
-	dto "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"github.com/golang/mock/gomock"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 // MockCommand is a mock of Command interface.
@@ -36,10 +36,10 @@ func (m *MockCommand) EXPECT() *MockCommandMockRecorder {
 }
 
 // Process mocks base method.
-func (m *MockCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
+func (m *MockCommand) Process(in model.MessageIn) (model.MessageOut, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Process", in)
-	ret0, _ := ret[0].(dto.MessageOut)
+	ret0, _ := ret[0].(model.MessageOut)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,7 +88,7 @@ func (mr *MockMessageSenderMockRecorder) GetUpdatesChan() *gomock.Call {
 }
 
 // SendMessage mocks base method.
-func (m *MockMessageSender) SendMessage(msgOut dto.MessageOut, userID int64) error {
+func (m *MockMessageSender) SendMessage(msgOut model.MessageOut, userID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendMessage", msgOut, userID)
 	ret0, _ := ret[0].(error)

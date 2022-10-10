@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/currency"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/inmemory"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command/currency"
 )
 
 const (
@@ -50,7 +50,7 @@ func New(
 	}
 }
 
-func (r *reportCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
+func (r *reportCommand) Process(in model.MessageIn) (model.MessageOut, error) {
 	now := time.Now()
 	switch in.Text {
 	case commandToday:
@@ -76,8 +76,8 @@ func (r *reportCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
 	return r.next.Process(in)
 }
 
-func (r *reportCommand) makeReport(userId int64, timeSince time.Time, timeRangePrefix string) (dto.MessageOut, error) {
-	out := dto.MessageOut{}
+func (r *reportCommand) makeReport(userId int64, timeSince time.Time, timeRangePrefix string) (model.MessageOut, error) {
+	out := model.MessageOut{}
 	records, err := r.repo.GetByTimeSince(timeSince)
 	if err != nil {
 		return out, errors.Wrap(err, "repo: get by time since")
@@ -117,7 +117,7 @@ func (r *reportCommand) makeReport(userId int64, timeSince time.Time, timeRangeP
 	return out, nil
 }
 
-func (r *reportCommand) getSelectedCurrency(userId int64) (selected_currency.SelectedCurrency, error) {
+func (r *reportCommand) getSelectedCurrency(userId int64) (model.SelectedCurrency, error) {
 	selectedCurrency, err := r.selectedCurrencyRepo.GetSelectedCurrency(userId)
 
 	if errors.Is(err, inmemory.CurrencyNotFound) {
@@ -132,7 +132,7 @@ func (r *reportCommand) getSelectedCurrency(userId int64) (selected_currency.Sel
 	return selectedCurrency, nil
 }
 
-func groupRecords(records []spend.SpendRecord, rate float64) map[string]float64 {
+func groupRecords(records []model.Spend, rate float64) map[string]float64 {
 	m := map[string]float64{}
 	for _, record := range records {
 		price := record.Price / rate

@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
 )
 
 type spendCommand struct {
@@ -23,8 +23,8 @@ func New(next messages.Command, repo spend.Repository) messages.Command {
 	}
 }
 
-func (s *spendCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
-	out := dto.MessageOut{}
+func (s *spendCommand) Process(in model.MessageIn) (model.MessageOut, error) {
+	out := model.MessageOut{}
 	if price, category, ok := parse(in.Text); ok {
 		rec, err := s.repo.Save(price, category)
 		if err != nil {

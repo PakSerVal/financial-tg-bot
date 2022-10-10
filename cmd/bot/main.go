@@ -7,12 +7,12 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/config"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/currency_rates"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command"
 	currencyInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/inmemory"
 	selectedCurrencyInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/inmemory"
 	spendInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/inmemory"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/currency_rates"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command"
 )
 
 func main() {

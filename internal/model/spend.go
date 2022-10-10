@@ -1,8 +1,8 @@
-package spend
+package model
 
 import "time"
 
-type SpendRecord struct {
+type Spend struct {
 	ID       int64
 	Price    float64
 	Category string

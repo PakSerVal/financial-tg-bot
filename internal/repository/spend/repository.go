@@ -1,8 +1,12 @@
 package spend
 
-import "time"
+import (
+	"time"
+
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+)
 
 type Repository interface {
-	Save(sum float64, category string) (SpendRecord, error)
-	GetByTimeSince(timeSince time.Time) ([]SpendRecord, error)
+	Save(sum float64, category string) (model.Spend, error)
+	GetByTimeSince(timeSince time.Time) ([]model.Spend, error)
 }

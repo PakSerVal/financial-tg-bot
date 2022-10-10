@@ -3,9 +3,9 @@ package currency
 import (
 	"fmt"
 
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
 )
 
 const (
@@ -16,9 +16,9 @@ const (
 	Cny     = "CNY"
 )
 
-var keyBoard = &dto.KeyBoard{
+var keyBoard = &model.KeyBoard{
 	OneTime: true,
-	Rows: []dto.KeyBoardRow{{Buttons: []dto.KeyBoardButton{
+	Rows: []model.KeyBoardRow{{Buttons: []model.KeyBoardButton{
 		{Text: Usd},
 		{Text: Eur},
 		{Text: Rub},
@@ -38,8 +38,8 @@ func New(next messages.Command, repo selected_currency.Repository) messages.Comm
 	}
 }
 
-func (s *currencyCommand) Process(in dto.MessageIn) (dto.MessageOut, error) {
-	out := dto.MessageOut{}
+func (s *currencyCommand) Process(in model.MessageIn) (model.MessageOut, error) {
+	out := model.MessageOut{}
 	if in.Text == cmdName {
 		out.Text = "В какой валюте вы хотите получать отчеты?"
 		out.KeyBoard = keyBoard

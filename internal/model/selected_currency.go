@@ -1,4 +1,4 @@
-package selected_currency
+package model
 
 type SelectedCurrency struct {
 	Currency string

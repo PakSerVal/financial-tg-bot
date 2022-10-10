@@ -3,7 +3,7 @@ package tg
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 const (
@@ -30,7 +30,7 @@ func New(tokenGetter TokenGetter) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) SendMessage(msg dto.MessageOut, userID int64) error {
+func (c *Client) SendMessage(msg model.MessageOut, userID int64) error {
 	_, err := c.client.Send(makeTgMessage(msg, userID))
 	if err != nil {
 		return errors.Wrap(err, "client.Send")
@@ -45,7 +45,7 @@ func (c *Client) GetUpdatesChan() tgbotapi.UpdatesChannel {
 	return c.client.GetUpdatesChan(u)
 }
 
-func makeTgMessage(msg dto.MessageOut, userID int64) tgbotapi.MessageConfig {
+func makeTgMessage(msg model.MessageOut, userID int64) tgbotapi.MessageConfig {
 	tgMessage := tgbotapi.NewMessage(userID, msg.Text)
 	if msg.KeyBoard != nil {
 		tgRows := make([][]tgbotapi.KeyboardButton, 0, len(msg.KeyBoard.Rows))
