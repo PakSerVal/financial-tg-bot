@@ -8,12 +8,12 @@ import (
 
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	customErrors "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/inmemory"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command/currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command/currency"
 )
 
 const (
@@ -120,7 +120,7 @@ func (r *reportCommand) makeReport(userId int64, timeSince time.Time, timeRangeP
 func (r *reportCommand) getSelectedCurrency(userId int64) (model.SelectedCurrency, error) {
 	selectedCurrency, err := r.selectedCurrencyRepo.GetSelectedCurrency(userId)
 
-	if errors.Is(err, inmemory.CurrencyNotFound) {
+	if errors.Is(err, customErrors.CurrencyNotFound) {
 		selectedCurrency.Currency = "руб"
 		return selectedCurrency, nil
 	}

@@ -5,10 +5,10 @@
 package mock_selected_currency
 
 import (
-	"reflect"
+	reflect "reflect"
 
-	"github.com/golang/mock/gomock"
-	selected_currency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	gomock "github.com/golang/mock/gomock"
+	model "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 // MockRepository is a mock of Repository interface.
@@ -35,10 +35,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetSelectedCurrency mocks base method.
-func (m *MockRepository) GetSelectedCurrency(userId int64) (selected_currency.SelectedCurrency, error) {
+func (m *MockRepository) GetSelectedCurrency(userId int64) (model.SelectedCurrency, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSelectedCurrency", userId)
-	ret0, _ := ret[0].(selected_currency.SelectedCurrency)
+	ret0, _ := ret[0].(model.SelectedCurrency)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

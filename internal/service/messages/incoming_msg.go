@@ -3,7 +3,7 @@ package messages
 import (
 	"log"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
@@ -11,17 +11,12 @@ type Command interface {
 	Process(in model.MessageIn) (model.MessageOut, error)
 }
 
-type MessageSender interface {
-	SendMessage(msgOut model.MessageOut, userID int64) error
-	GetUpdatesChan() tgbotapi.UpdatesChannel
-}
-
 type Model struct {
-	tgClient     MessageSender
+	tgClient     tg.Client
 	commandChain Command
 }
 
-func New(tgClient MessageSender, commandChain Command) *Model {
+func New(tgClient tg.Client, commandChain Command) *Model {
 	return &Model{
 		tgClient:     tgClient,
 		commandChain: commandChain,

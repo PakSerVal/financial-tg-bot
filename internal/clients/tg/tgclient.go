@@ -11,26 +11,31 @@ const (
 	updateTimeout = 60
 )
 
+type Client interface {
+	SendMessage(msgOut model.MessageOut, userID int64) error
+	GetUpdatesChan() tgbotapi.UpdatesChannel
+}
+
 type TokenGetter interface {
 	Token() string
 }
 
-type Client struct {
+type client struct {
 	client *tgbotapi.BotAPI
 }
 
-func New(tokenGetter TokenGetter) (*Client, error) {
-	client, err := tgbotapi.NewBotAPI(tokenGetter.Token())
+func New(tokenGetter TokenGetter) (Client, error) {
+	c, err := tgbotapi.NewBotAPI(tokenGetter.Token())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new bot")
 	}
 
-	return &Client{
-		client: client,
+	return &client{
+		client: c,
 	}, nil
 }
 
-func (c *Client) SendMessage(msg model.MessageOut, userID int64) error {
+func (c *client) SendMessage(msg model.MessageOut, userID int64) error {
 	_, err := c.client.Send(makeTgMessage(msg, userID))
 	if err != nil {
 		return errors.Wrap(err, "client.Send")
@@ -38,7 +43,7 @@ func (c *Client) SendMessage(msg model.MessageOut, userID int64) error {
 	return nil
 }
 
-func (c *Client) GetUpdatesChan() tgbotapi.UpdatesChannel {
+func (c *client) GetUpdatesChan() tgbotapi.UpdatesChannel {
 	u := tgbotapi.NewUpdate(updateOffset)
 	u.Timeout = updateTimeout
 

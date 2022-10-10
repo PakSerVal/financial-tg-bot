@@ -5,10 +5,10 @@
 package mock_currency_rate
 
 import (
-	"reflect"
+	reflect "reflect"
 
-	"github.com/golang/mock/gomock"
-	currency_rate "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	gomock "github.com/golang/mock/gomock"
+	model "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 // MockRepository is a mock of Repository interface.
@@ -35,10 +35,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetRateByCurrency mocks base method.
-func (m *MockRepository) GetRateByCurrency(currency string) (currency_rate.CurrencyRate, error) {
+func (m *MockRepository) GetRateByCurrency(currency string) (model.CurrencyRate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRateByCurrency", currency)
-	ret0, _ := ret[0].(currency_rate.CurrencyRate)
+	ret0, _ := ret[0].(model.CurrencyRate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +50,10 @@ func (mr *MockRepositoryMockRecorder) GetRateByCurrency(currency interface{}) *g
 }
 
 // SaveRate mocks base method.
-func (m *MockRepository) SaveRate(name string, value float64) (currency_rate.CurrencyRate, error) {
+func (m *MockRepository) SaveRate(name string, value float64) (model.CurrencyRate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveRate", name, value)
-	ret0, _ := ret[0].(currency_rate.CurrencyRate)
+	ret0, _ := ret[0].(model.CurrencyRate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -5,11 +5,11 @@
 package mock_spend
 
 import (
-	"reflect"
-	"time"
+	reflect "reflect"
+	time "time"
 
-	"github.com/golang/mock/gomock"
-	spend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	gomock "github.com/golang/mock/gomock"
+	model "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 // MockRepository is a mock of Repository interface.
@@ -36,10 +36,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetByTimeSince mocks base method.
-func (m *MockRepository) GetByTimeSince(timeSince time.Time) ([]spend.Spend, error) {
+func (m *MockRepository) GetByTimeSince(timeSince time.Time) ([]model.Spend, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByTimeSince", timeSince)
-	ret0, _ := ret[0].([]spend.Spend)
+	ret0, _ := ret[0].([]model.Spend)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +51,10 @@ func (mr *MockRepositoryMockRecorder) GetByTimeSince(timeSince interface{}) *gom
 }
 
 // Save mocks base method.
-func (m *MockRepository) Save(sum float64, category string) (spend.Spend, error) {
+func (m *MockRepository) Save(sum float64, category string) (model.Spend, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", sum, category)
-	ret0, _ := ret[0].(spend.Spend)
+	ret0, _ := ret[0].(model.Spend)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

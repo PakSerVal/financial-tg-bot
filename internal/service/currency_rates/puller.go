@@ -19,8 +19,8 @@ type CurrencyRatePuller struct {
 func NewCurrencyRatePuller(
 	currencyRepo currencyRepo.Repository,
 	apiClient currency_rate.CurrencyRateApiClient,
-) CurrencyRatePuller {
-	return CurrencyRatePuller{
+) *CurrencyRatePuller {
+	return &CurrencyRatePuller{
 		currencyRepo: currencyRepo,
 		apiClient:    apiClient,
 	}

@@ -19,11 +19,12 @@ run:
 	go run ${PACKAGE}
 
 generate: install-mockgen
-	${MOCKGEN} -source=internal/model/messages/incoming_msg.go -destination=internal/model/messages/mocks/incoming_msg.go
+	${MOCKGEN} -source=internal/service/messages/incoming_msg.go -destination=internal/service/messages/mocks/incoming_msg.go
 	${MOCKGEN} -source=internal/repository/currency_rate/repository.go -destination=internal/repository/currency_rate/mocks/repository.go
 	${MOCKGEN} -source=internal/repository/spend/repository.go -destination=internal/repository/spend/mocks/repository.go
 	${MOCKGEN} -source=internal/repository/selected_currency/repository.go -destination=internal/repository/selected_currency/mocks/repository.go
 	${MOCKGEN} -source=internal/clients/currency_rate/currency_rate.go -destination=internal/clients/currency_rate/mocks/currency_rate.go
+	${MOCKGEN} -source=internal/clients/tg/tgclient.go -destination=internal/clients/tg/mocks/tgclient.go
 
 lint: install-lint
 	${LINTBIN} run

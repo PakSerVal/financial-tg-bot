@@ -1,12 +1,10 @@
 package inmemory
 
 import (
-	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 )
-
-var CurrencyNotFound = errors.New("currency not found")
 
 type inmemory struct {
 	selectedCurrency map[int64]model.SelectedCurrency
@@ -32,5 +30,5 @@ func (i *inmemory) GetSelectedCurrency(userId int64) (model.SelectedCurrency, er
 		return cur, nil
 	}
 
-	return model.SelectedCurrency{}, CurrencyNotFound
+	return model.SelectedCurrency{}, errors.CurrencyNotFound
 }

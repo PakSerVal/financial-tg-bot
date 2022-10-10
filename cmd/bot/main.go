@@ -10,9 +10,9 @@ import (
 	currencyInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/inmemory"
 	selectedCurrencyInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/inmemory"
 	spendInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/inmemory"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/currency_rates"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/command"
 )
 
 func main() {
