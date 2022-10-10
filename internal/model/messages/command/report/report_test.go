@@ -6,22 +6,22 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
-	mock_currency_rate "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/currency_rate"
-	mock_selected_currency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/selected_currency"
-	mock_spend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/spend"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/mocks"
 	currencyRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
+	mockCurrencyRate "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/mocks"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
+	mockSelectedCurrency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/mocks"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	mockSpend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/mocks"
 )
 
 func TestReportCommand_ProcessFailed(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	sendRepo := mock_spend.NewMockRepository(ctrl)
-	selectedCurrencyRepo := mock_selected_currency.NewMockRepository(ctrl)
-	currencyRateRepo := mock_currency_rate.NewMockRepository(ctrl)
+	next := mockMessages.NewMockCommand(ctrl)
+	sendRepo := mockSpend.NewMockRepository(ctrl)
+	selectedCurrencyRepo := mockSelectedCurrency.NewMockRepository(ctrl)
+	currencyRateRepo := mockCurrencyRate.NewMockRepository(ctrl)
 	command := New(next, sendRepo, selectedCurrencyRepo, currencyRateRepo)
 
 	t.Run("not supported", func(t *testing.T) {
@@ -67,10 +67,10 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 
 func TestReportCommand_ProcessSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	sendRepo := mock_spend.NewMockRepository(ctrl)
-	selectedCurrencyRepo := mock_selected_currency.NewMockRepository(ctrl)
-	currencyRateRepo := mock_currency_rate.NewMockRepository(ctrl)
+	next := mockMessages.NewMockCommand(ctrl)
+	sendRepo := mockSpend.NewMockRepository(ctrl)
+	selectedCurrencyRepo := mockSelectedCurrency.NewMockRepository(ctrl)
+	currencyRateRepo := mockCurrencyRate.NewMockRepository(ctrl)
 	command := New(next, sendRepo, selectedCurrencyRepo, currencyRateRepo)
 
 	sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]spend.SpendRecord{

@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const apiUrl = "https://www.cbr-xml-daily.ru/daily_json.js"
+
 type CurrencyRateApiClient interface {
 	GetCurrencyRates() (map[string]ApiCurrencyRate, error)
 }
@@ -20,18 +22,14 @@ type ApiCurrencyRate struct {
 	Rate float64 `json:"Value"`
 }
 
-type currencyRateApiClient struct {
-	apiUrl string
-}
+type currencyRateApiClient struct{}
 
-func NewCurrencyRateApiClient(apiUrl string) CurrencyRateApiClient {
-	return &currencyRateApiClient{
-		apiUrl: apiUrl,
-	}
+func NewCurrencyRateApiClient() CurrencyRateApiClient {
+	return &currencyRateApiClient{}
 }
 
 func (c *currencyRateApiClient) GetCurrencyRates() (map[string]ApiCurrencyRate, error) {
-	resp, err := http.Get(c.apiUrl)
+	resp, err := http.Get(apiUrl)
 	if err != nil {
 		return nil, errors.Wrap(err, "api: getting currency_rate request error")
 	}

@@ -27,7 +27,7 @@ func main() {
 	currencyRepo := currencyInmemory.New()
 
 	go func() {
-		currencyRateApiClient := currency_rate.NewCurrencyRateApiClient(cfg.CurrencyRatesApiUrl())
+		currencyRateApiClient := currency_rate.NewCurrencyRateApiClient()
 		currencyRatePuller := currency_rates.NewCurrencyRatePuller(currencyRepo, currencyRateApiClient)
 		currencyRatePuller.Pull(ctx)
 	}()
@@ -36,6 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatal("tg client init failed:", err)
 	}
+
 	spendRepo := spendInmemory.New()
 	selectedCurrencyRepo := selectedCurrencyInmemory.New()
 	msgModel := messages.New(tgClient, command.MakeChain(spendRepo, currencyRepo, selectedCurrencyRepo))

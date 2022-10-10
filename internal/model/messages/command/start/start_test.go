@@ -5,13 +5,13 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/mocks"
 )
 
 func TestStartCommand_Process(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
+	next := mockMessages.NewMockCommand(ctrl)
 
 	next.EXPECT().Process(dto.MessageIn{Text: "not supported text"}).Return(dto.MessageOut{Text: "привет"}, nil)
 

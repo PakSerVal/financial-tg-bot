@@ -6,15 +6,15 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
-	mock_selected_currency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/mocks"
+	mockSelectedCurrency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/mocks"
 )
 
 func TestReportCommand_ProcessFailed(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	next := mocks.NewMockCommand(ctrl)
-	repo := mock_selected_currency.NewMockRepository(ctrl)
+	next := mockMessages.NewMockCommand(ctrl)
+	repo := mockSelectedCurrency.NewMockRepository(ctrl)
 	command := New(next, repo)
 
 	gomock.InOrder(

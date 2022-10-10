@@ -35,7 +35,6 @@ func (c *CurrencyRatePuller) Pull(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			ticker.Stop()
 			return
 
 		case <-ticker.C:

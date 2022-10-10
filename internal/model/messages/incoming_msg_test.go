@@ -6,14 +6,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	mocks "gitlab.ozon.dev/paksergey94/telegram-bot/internal/mocks/messages"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/dto"
+	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/mocks"
 )
 
 func TestModel_ProcessMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	sender := mocks.NewMockMessageSender(ctrl)
-	chain := mocks.NewMockCommand(ctrl)
+	sender := mockMessages.NewMockMessageSender(ctrl)
+	chain := mockMessages.NewMockCommand(ctrl)
 	model := New(sender, chain)
 
 	t.Run("chain error", func(t *testing.T) {
