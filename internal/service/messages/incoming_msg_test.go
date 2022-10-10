@@ -6,13 +6,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	mock_tg "gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg/mocks"
 	model2 "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/mocks"
 )
 
 func TestModel_ProcessMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	sender := mockMessages.NewMockMessageSender(ctrl)
+	sender := mock_tg.NewMockClient(ctrl)
 	chain := mockMessages.NewMockCommand(ctrl)
 	model := New(sender, chain)
 
