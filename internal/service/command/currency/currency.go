@@ -6,23 +6,20 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
 )
 
 const (
 	cmdName = "currency"
-	Usd     = "USD"
-	Eur     = "EUR"
-	Rub     = "RUB"
-	Cny     = "CNY"
 )
 
 var keyBoard = &model.KeyBoard{
 	OneTime: true,
 	Rows: []model.KeyBoardRow{{Buttons: []model.KeyBoardButton{
-		{Text: Usd},
-		{Text: Eur},
-		{Text: Rub},
-		{Text: Cny},
+		{Text: report.Usd},
+		{Text: report.Eur},
+		{Text: report.Rub},
+		{Text: report.Cny},
 	}}},
 }
 
@@ -38,28 +35,28 @@ func New(next messages.Command, repo selected_currency.Repository) messages.Comm
 	}
 }
 
-func (s *currencyCommand) Process(in model.MessageIn) (model.MessageOut, error) {
-	out := model.MessageOut{}
+func (s *currencyCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
 	if in.Text == cmdName {
-		out.Text = "В какой валюте вы хотите получать отчеты?"
-		out.KeyBoard = keyBoard
-
-		return out, nil
+		return &model.MessageOut{
+			Text:     "В какой валюте вы хотите получать отчеты?",
+			KeyBoard: keyBoard,
+		}, nil
 	}
 
 	if isCurrency(in.Text) {
 		err := s.repo.SaveSelectedCurrency(in.Text, in.UserId)
 		if err != nil {
-			return out, err
+			return nil, err
 		}
 
-		out.Text = fmt.Sprintf("Выбранная валюта: %s", in.Text)
-		return out, nil
+		return &model.MessageOut{
+			Text: fmt.Sprintf("Выбранная валюта: %s", in.Text),
+		}, nil
 	}
 
 	return s.next.Process(in)
 }
 
 func isCurrency(msgText string) bool {
-	return msgText == Usd || msgText == Eur || msgText == Rub || msgText == Cny
+	return msgText == report.Usd || msgText == report.Eur || msgText == report.Rub || msgText == report.Cny
 }

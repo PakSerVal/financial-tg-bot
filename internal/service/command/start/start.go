@@ -25,11 +25,11 @@ func New(next messages.Command) messages.Command {
 	}
 }
 
-func (s *startCommand) Process(in model.MessageIn) (model.MessageOut, error) {
-	out := model.MessageOut{}
+func (s *startCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
 	if in.Text == cmdName {
-		out.Text = menuText
-		return out, nil
+		return &model.MessageOut{
+			Text: menuText,
+		}, nil
 	}
 
 	return s.next.Process(in)

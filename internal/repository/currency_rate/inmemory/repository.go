@@ -9,25 +9,25 @@ import (
 
 type inmemory struct {
 	rates map[string]model.CurrencyRate
-	mu    *sync.RWMutex
+	mu    sync.RWMutex
 }
 
 func New() currency_rate.Repository {
 	return &inmemory{
 		rates: map[string]model.CurrencyRate{},
-		mu:    &sync.RWMutex{},
 	}
 }
 
 func (i *inmemory) SaveRate(name string, rate float64) (model.CurrencyRate, error) {
+
 	rateRecord := model.CurrencyRate{
 		Name:  name,
 		Value: rate,
 	}
 
-	i.mu.Lock()
+	i.mu.RLock()
 	i.rates[name] = rateRecord
-	i.mu.Unlock()
+	i.mu.RUnlock()
 
 	return rateRecord, nil
 }

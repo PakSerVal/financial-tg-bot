@@ -1,19 +1,11 @@
 package report
 
 import (
-	"fmt"
-	"sort"
-	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
-	customErrors "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/errors"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command/currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
 )
 
 const (
@@ -22,51 +14,38 @@ const (
 	commandYear  = "year"
 )
 
-var currencyUnitName = map[string]string{
-	currency.Usd: "дол",
-	currency.Rub: "руб",
-	currency.Cny: "юан",
-	currency.Eur: "евро",
-}
-
 type reportCommand struct {
-	next                 messages.Command
-	repo                 spend.Repository
-	selectedCurrencyRepo selected_currency.Repository
-	currencyRateRepo     currency_rate.Repository
+	next          messages.Command
+	reportService report.Service
 }
 
 func New(
 	next messages.Command,
-	repo spend.Repository,
-	selectedCurrencyRepo selected_currency.Repository,
-	currencyRateRepo currency_rate.Repository,
+	reportService report.Service,
 ) messages.Command {
 	return &reportCommand{
-		next:                 next,
-		repo:                 repo,
-		selectedCurrencyRepo: selectedCurrencyRepo,
-		currencyRateRepo:     currencyRateRepo,
+		next:          next,
+		reportService: reportService,
 	}
 }
 
-func (r *reportCommand) Process(in model.MessageIn) (model.MessageOut, error) {
+func (r *reportCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
 	now := time.Now()
 	switch in.Text {
 	case commandToday:
-		return r.makeReport(
+		return r.reportService.MakeReport(
 			in.UserId,
 			time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()),
 			"сегодня",
 		)
 	case commandMonth:
-		return r.makeReport(
+		return r.reportService.MakeReport(
 			in.UserId,
 			time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()),
 			"в текущем месяце",
 		)
 	case commandYear:
-		return r.makeReport(
+		return r.reportService.MakeReport(
 			in.UserId,
 			time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location()),
 			"в этом году",
@@ -74,70 +53,4 @@ func (r *reportCommand) Process(in model.MessageIn) (model.MessageOut, error) {
 	}
 
 	return r.next.Process(in)
-}
-
-func (r *reportCommand) makeReport(userId int64, timeSince time.Time, timeRangePrefix string) (model.MessageOut, error) {
-	out := model.MessageOut{}
-	records, err := r.repo.GetByTimeSince(timeSince)
-	if err != nil {
-		return out, errors.Wrap(err, "repo: get by time since")
-	}
-
-	if len(records) == 0 {
-		out.Text = "Расходов " + timeRangePrefix + " нет"
-		return out, nil
-	}
-
-	cur, err := r.getSelectedCurrency(userId)
-	if err != nil {
-		return out, errors.Wrap(err, "get selected currency error")
-	}
-
-	unitName, ok := currencyUnitName[cur.Currency]
-	if !ok {
-		unitName = "руб"
-	}
-
-	rate, err := r.currencyRateRepo.GetRateByCurrency(cur.Currency)
-	if errors.Is(err, currency_rate.ErrCurrencyRateNotFound) {
-		rate.Value = 1
-	} else {
-		if err != nil {
-			return out, errors.Wrap(err, "get currency rates error")
-		}
-	}
-
-	var msgTextParts []string
-	for category, sum := range groupRecords(records, rate.Value) {
-		msgTextParts = append(msgTextParts, fmt.Sprintf("%s - %.2f %s.", category, sum, unitName))
-	}
-	sort.Strings(msgTextParts)
-
-	out.Text = "Расходы " + timeRangePrefix + ":\n" + strings.Join(msgTextParts, "\n")
-	return out, nil
-}
-
-func (r *reportCommand) getSelectedCurrency(userId int64) (model.SelectedCurrency, error) {
-	selectedCurrency, err := r.selectedCurrencyRepo.GetSelectedCurrency(userId)
-
-	if errors.Is(err, customErrors.CurrencyNotFound) {
-		selectedCurrency.Currency = "руб"
-		return selectedCurrency, nil
-	}
-
-	if err != nil {
-		return selectedCurrency, err
-	}
-
-	return selectedCurrency, nil
-}
-
-func groupRecords(records []model.Spend, rate float64) map[string]float64 {
-	m := map[string]float64{}
-	for _, record := range records {
-		price := record.Price / rate
-		m[record.Category] += price
-	}
-
-	return m
 }

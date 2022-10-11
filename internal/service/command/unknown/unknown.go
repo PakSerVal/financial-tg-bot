@@ -11,9 +11,8 @@ func New() messages.Command {
 	return &unknownCommand{}
 }
 
-func (s *unknownCommand) Process(in model.MessageIn) (model.MessageOut, error) {
-	out := model.MessageOut{
+func (s *unknownCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
+	return &model.MessageOut{
 		Text: "не знаю такую команду",
-	}
-	return out, nil
+	}, nil
 }

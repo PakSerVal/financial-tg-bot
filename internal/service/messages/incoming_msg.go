@@ -3,12 +3,13 @@ package messages
 import (
 	"log"
 
+	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 type Command interface {
-	Process(in model.MessageIn) (model.MessageOut, error)
+	Process(in model.MessageIn) (*model.MessageOut, error)
 }
 
 type Model struct {
@@ -53,5 +54,9 @@ func (s *Model) processMessage(msgText string, userId int64) error {
 		return err
 	}
 
-	return s.tgClient.SendMessage(msgOut, userId)
+	if msgOut == nil {
+		return errors.New("message result must be non-empty")
+	}
+
+	return s.tgClient.SendMessage(*msgOut, userId)
 }

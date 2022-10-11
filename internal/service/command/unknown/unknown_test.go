@@ -12,5 +12,5 @@ func TestUnknownCommand_Process(t *testing.T) {
 
 	res, err := command.Process(model.MessageIn{Text: "unknown command"})
 	assert.NoError(t, err)
-	assert.Equal(t, model.MessageOut{Text: "не знаю такую команду"}, res)
+	assert.Equal(t, &model.MessageOut{Text: "не знаю такую команду"}, res)
 }

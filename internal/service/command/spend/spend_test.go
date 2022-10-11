@@ -19,7 +19,7 @@ func TestSpendCommand_Process(t *testing.T) {
 	command := New(next, sendRepo)
 
 	gomock.InOrder(
-		next.EXPECT().Process(model.MessageIn{Text: "not supported text"}).Return(model.MessageOut{Text: "привет"}, nil),
+		next.EXPECT().Process(model.MessageIn{Text: "not supported text"}).Return(&model.MessageOut{Text: "привет"}, nil),
 		sendRepo.EXPECT().Save(float64(123), "такси").Return(model.Spend{}, errors.New("some error")),
 		sendRepo.EXPECT().Save(float64(123), "такси").Return(model.Spend{
 			ID:       1,
@@ -32,7 +32,7 @@ func TestSpendCommand_Process(t *testing.T) {
 		res, err := command.Process(model.MessageIn{Text: "not supported text"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, model.MessageOut{Text: "привет"}, res)
+		assert.Equal(t, &model.MessageOut{Text: "привет"}, res)
 	})
 
 	t.Run("repo error", func(t *testing.T) {
@@ -45,6 +45,6 @@ func TestSpendCommand_Process(t *testing.T) {
 		res, err := command.Process(model.MessageIn{Text: "123 такси"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, model.MessageOut{Text: "Добавлена трата: Такси 123.00 руб."}, res)
+		assert.Equal(t, &model.MessageOut{Text: "Добавлена трата: Такси 123.00 руб."}, res)
 	})
 }

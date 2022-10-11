@@ -13,6 +13,7 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/currency_rates"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
 )
 
 func main() {
@@ -39,7 +40,8 @@ func main() {
 
 	spendRepo := spendInmemory.New()
 	selectedCurrencyRepo := selectedCurrencyInmemory.New()
-	msgModel := messages.New(tgClient, command.MakeChain(spendRepo, currencyRepo, selectedCurrencyRepo))
+	reportService := report.New(spendRepo, currencyRepo, selectedCurrencyRepo)
+	msgModel := messages.New(tgClient, command.MakeChain(spendRepo, selectedCurrencyRepo, reportService))
 
 	msgModel.ListenIncomingMessages()
 }

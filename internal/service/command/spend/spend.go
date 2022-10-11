@@ -23,16 +23,16 @@ func New(next messages.Command, repo spend.Repository) messages.Command {
 	}
 }
 
-func (s *spendCommand) Process(in model.MessageIn) (model.MessageOut, error) {
-	out := model.MessageOut{}
+func (s *spendCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
 	if price, category, ok := parse(in.Text); ok {
 		rec, err := s.repo.Save(price, category)
 		if err != nil {
-			return out, errors.Wrap(err, "repo: save spend record error")
+			return nil, errors.Wrap(err, "repo: save spend record error")
 		}
 
-		out.Text = fmt.Sprintf("Добавлена трата: %s %.2f руб.", rec.Category, rec.Price)
-		return out, nil
+		return &model.MessageOut{
+			Text: fmt.Sprintf("Добавлена трата: %s %.2f руб.", rec.Category, rec.Price),
+		}, nil
 	}
 
 	return s.next.Process(in)

@@ -35,10 +35,10 @@ func (m *MockCommand) EXPECT() *MockCommandMockRecorder {
 }
 
 // Process mocks base method.
-func (m *MockCommand) Process(in model.MessageIn) (model.MessageOut, error) {
+func (m *MockCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Process", in)
-	ret0, _ := ret[0].(model.MessageOut)
+	ret0, _ := ret[0].(*model.MessageOut)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
