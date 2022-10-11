@@ -15,6 +15,10 @@ build: bindir
 test:
 	go test ./...
 
+.PHONY: test-coverage
+test-coverage:
+	go test ./... -coverprofile=coverage.out && go tool cover -html=coverage.out
+
 run:
 	go run ${PACKAGE}
 
