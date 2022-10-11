@@ -24,14 +24,16 @@ func (i *inmemory) SaveRate(name string, rate int64) (model.CurrencyRate, error)
 		Value: rate,
 	}
 
-	i.mu.RLock()
+	i.mu.Lock()
+	defer i.mu.Unlock()
 	i.rates[name] = rateRecord
-	i.mu.RUnlock()
 
 	return rateRecord, nil
 }
 
 func (i *inmemory) GetRateByCurrency(currency string) (model.CurrencyRate, error) {
+	i.mu.RLock()
+	defer i.mu.RUnlock()
 	rate, ok := i.rates[currency]
 	if !ok {
 		return rate, currency_rate.ErrCurrencyRateNotFound
