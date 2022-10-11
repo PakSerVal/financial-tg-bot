@@ -1,4 +1,4 @@
-package errors
+package err_msg
 
 import "github.com/pkg/errors"
 

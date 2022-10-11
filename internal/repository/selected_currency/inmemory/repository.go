@@ -2,7 +2,7 @@ package inmemory
 
 import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/errors"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/err_msg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 )
 
@@ -30,5 +30,5 @@ func (i *inmemory) GetSelectedCurrency(userId int64) (model.SelectedCurrency, er
 		return cur, nil
 	}
 
-	return model.SelectedCurrency{}, errors.CurrencyNotFound
+	return model.SelectedCurrency{}, err_msg.CurrencyNotFound
 }

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
-	customErrors "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/errors"
+	customErrors "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/err_msg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
