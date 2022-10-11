@@ -7,6 +7,6 @@ import (
 )
 
 type Repository interface {
-	Save(sum float64, category string) (model.Spend, error)
+	Save(sum int64, category string) (model.Spend, error)
 	GetByTimeSince(timeSince time.Time) ([]model.Spend, error)
 }

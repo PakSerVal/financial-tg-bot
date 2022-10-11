@@ -12,6 +12,7 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
 )
 
 const (
@@ -103,10 +104,11 @@ func (r *service) getSelectedCurrency(userId int64) (model.SelectedCurrency, err
 	return selectedCurrency, nil
 }
 
-func groupRecords(records []model.Spend, rate float64) map[string]float64 {
+func groupRecords(records []model.Spend, rate int64) map[string]float64 {
+	rateF := utils.ConvertKopecksToFloat(rate)
 	m := map[string]float64{}
 	for _, record := range records {
-		price := record.Price / rate
+		price := utils.ConvertKopecksToFloat(record.Price) / rateF
 		m[record.Category] += price
 	}
 

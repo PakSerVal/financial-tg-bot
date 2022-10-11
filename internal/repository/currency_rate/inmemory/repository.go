@@ -18,8 +18,7 @@ func New() currency_rate.Repository {
 	}
 }
 
-func (i *inmemory) SaveRate(name string, rate float64) (model.CurrencyRate, error) {
-
+func (i *inmemory) SaveRate(name string, rate int64) (model.CurrencyRate, error) {
 	rateRecord := model.CurrencyRate{
 		Name:  name,
 		Value: rate,

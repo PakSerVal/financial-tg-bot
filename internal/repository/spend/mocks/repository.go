@@ -51,7 +51,7 @@ func (mr *MockRepositoryMockRecorder) GetByTimeSince(timeSince interface{}) *gom
 }
 
 // Save mocks base method.
-func (m *MockRepository) Save(sum float64, category string) (model.Spend, error) {
+func (m *MockRepository) Save(sum int64, category string) (model.Spend, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", sum, category)
 	ret0, _ := ret[0].(model.Spend)

@@ -65,32 +65,32 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 	sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]currencyRepo.Spend{
 		{
 			ID:       1,
-			Price:    100,
+			Price:    10000,
 			Category: "Такси",
 		},
 		{
 			ID:       2,
-			Price:    400,
+			Price:    40000,
 			Category: "Такси",
 		},
 		{
 			ID:       3,
-			Price:    200,
+			Price:    20000,
 			Category: "Такси",
 		},
 		{
 			ID:       4,
-			Price:    200,
+			Price:    20000,
 			Category: "Продукты",
 		},
 		{
 			ID:       4,
-			Price:    900,
+			Price:    90000,
 			Category: "Продукты",
 		},
 		{
 			ID:       5,
-			Price:    2000,
+			Price:    200000,
 			Category: "Инвестиции",
 		},
 	}, nil).Times(3)
@@ -104,7 +104,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 		name     string
 		in       args
 		currency string
-		rate     float64
+		rate     int64
 		wanted   *currencyRepo.MessageOut
 	}{
 		{
@@ -114,7 +114,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 				prefix: "сегодня",
 			},
 			currency: "USD",
-			rate:     60.1,
+			rate:     6010,
 			wanted: &currencyRepo.MessageOut{
 				Text: "Расходы сегодня:\nИнвестиции - 33.28 дол.\nПродукты - 18.30 дол.\nТакси - 11.65 дол.",
 			},
@@ -126,7 +126,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 				prefix: "в текущем месяце",
 			},
 			currency: "EUR",
-			rate:     64.3,
+			rate:     6430,
 			wanted: &currencyRepo.MessageOut{
 				Text: "Расходы в текущем месяце:\nИнвестиции - 31.10 евро.\nПродукты - 17.11 евро.\nТакси - 10.89 евро.",
 			},
@@ -138,7 +138,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 				prefix: "в этом году",
 			},
 			currency: "CNY",
-			rate:     8.76,
+			rate:     876,
 			wanted: &currencyRepo.MessageOut{
 				Text: "Расходы в этом году:\nИнвестиции - 228.31 юан.\nПродукты - 125.57 юан.\nТакси - 79.91 юан.",
 			},

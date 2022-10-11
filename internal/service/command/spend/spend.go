@@ -9,6 +9,7 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
 )
 
 type spendCommand struct {
@@ -25,13 +26,13 @@ func New(next messages.Command, repo spend.Repository) messages.Command {
 
 func (s *spendCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
 	if price, category, ok := parse(in.Text); ok {
-		rec, err := s.repo.Save(price, category)
+		rec, err := s.repo.Save(utils.ConvertFloatToKopecks(price), category)
 		if err != nil {
 			return nil, errors.Wrap(err, "repo: save spend record error")
 		}
 
 		return &model.MessageOut{
-			Text: fmt.Sprintf("Добавлена трата: %s %.2f руб.", rec.Category, rec.Price),
+			Text: fmt.Sprintf("Добавлена трата: %s %.2f руб.", rec.Category, price),
 		}, nil
 	}
 

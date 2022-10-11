@@ -4,7 +4,7 @@ import "time"
 
 type Spend struct {
 	ID       int64
-	Price    float64
+	Price    int64
 	Category string
 	DateTime time.Time
 }

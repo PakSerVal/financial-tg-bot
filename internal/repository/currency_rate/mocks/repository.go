@@ -50,7 +50,7 @@ func (mr *MockRepositoryMockRecorder) GetRateByCurrency(currency interface{}) *g
 }
 
 // SaveRate mocks base method.
-func (m *MockRepository) SaveRate(name string, value float64) (model.CurrencyRate, error) {
+func (m *MockRepository) SaveRate(name string, value int64) (model.CurrencyRate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveRate", name, value)
 	ret0, _ := ret[0].(model.CurrencyRate)

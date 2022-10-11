@@ -16,10 +16,10 @@ func New() spend.Repository {
 	return &inmemory{}
 }
 
-func (i *inmemory) Save(sum float64, category string) (model.Spend, error) {
+func (i *inmemory) Save(price int64, category string) (model.Spend, error) {
 	rec := model.Spend{
 		ID:       i.lastIndex + 1,
-		Price:    sum,
+		Price:    price,
 		Category: category,
 		DateTime: time.Now(),
 	}

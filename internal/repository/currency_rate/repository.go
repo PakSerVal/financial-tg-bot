@@ -8,6 +8,6 @@ import (
 var ErrCurrencyRateNotFound = errors.New("repo: currency rate not found")
 
 type Repository interface {
-	SaveRate(name string, value float64) (model.CurrencyRate, error)
+	SaveRate(name string, value int64) (model.CurrencyRate, error)
 	GetRateByCurrency(currency string) (model.CurrencyRate, error)
 }

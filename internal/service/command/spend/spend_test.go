@@ -20,8 +20,8 @@ func TestSpendCommand_Process(t *testing.T) {
 
 	gomock.InOrder(
 		next.EXPECT().Process(model.MessageIn{Text: "not supported text"}).Return(&model.MessageOut{Text: "привет"}, nil),
-		sendRepo.EXPECT().Save(float64(123), "такси").Return(model.Spend{}, errors.New("some error")),
-		sendRepo.EXPECT().Save(float64(123), "такси").Return(model.Spend{
+		sendRepo.EXPECT().Save(int64(12300), "такси").Return(model.Spend{}, errors.New("some error")),
+		sendRepo.EXPECT().Save(int64(12300), "такси").Return(model.Spend{
 			ID:       1,
 			Price:    123,
 			Category: "Такси",

@@ -7,6 +7,7 @@ import (
 
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/currency_rate"
 	currencyRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
 )
 
 const pullingInterval = time.Hour * 12
@@ -52,7 +53,7 @@ func (c *CurrencyRatePuller) updateRates() {
 	}
 
 	for _, rate := range rates {
-		_, err = c.currencyRepo.SaveRate(rate.Name, rate.Rate)
+		_, err = c.currencyRepo.SaveRate(rate.Name, utils.ConvertFloatToKopecks(rate.Rate))
 		if err != nil {
 			log.Println("saving rate to db error:", err)
 			return
