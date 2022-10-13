@@ -3,23 +3,23 @@ package inmemory
 import (
 	"time"
 
-	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/messages/command/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 )
 
 type inmemory struct {
 	lastIndex int64
-	records   []spend.SpendRecord
+	records   []model.Spend
 }
 
-func New() spendRepo.Repository {
+func New() spend.Repository {
 	return &inmemory{}
 }
 
-func (i *inmemory) Save(sum int64, category string) (spend.SpendRecord, error) {
-	rec := spend.SpendRecord{
+func (i *inmemory) Save(price int64, category string) (model.Spend, error) {
+	rec := model.Spend{
 		ID:       i.lastIndex + 1,
-		Price:    sum,
+		Price:    price,
 		Category: category,
 		DateTime: time.Now(),
 	}
@@ -28,8 +28,8 @@ func (i *inmemory) Save(sum int64, category string) (spend.SpendRecord, error) {
 	return rec, nil
 }
 
-func (i *inmemory) GetByTimeSince(timeSince time.Time) ([]spend.SpendRecord, error) {
-	var result []spend.SpendRecord
+func (i *inmemory) GetByTimeSince(timeSince time.Time) ([]model.Spend, error) {
+	var result []model.Spend
 	for _, rec := range i.records {
 		if timeSince.Before(rec.DateTime) {
 			result = append(result, rec)

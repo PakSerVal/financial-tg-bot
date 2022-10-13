@@ -15,13 +15,21 @@ build: bindir
 test:
 	go test ./...
 
+.PHONY: test-coverage
+test-coverage:
+	go test ./... -coverprofile=coverage.out && go tool cover -html=coverage.out
+
 run:
 	go run ${PACKAGE}
 
 generate: install-mockgen
-	${MOCKGEN} -source=internal/model/messages/incoming_msg.go -destination=internal/mocks/messages/messages_mocks.go
-	${MOCKGEN} -source=internal/model/messages/command/report/report.go -destination=internal/mocks/messages/command/report/report.go
-	${MOCKGEN} -source=internal/model/messages/command/spend/spend.go -destination=internal/mocks/messages/command/spend/spend.go
+	${MOCKGEN} -source=internal/service/messages/incoming_msg.go -destination=internal/service/messages/mocks/incoming_msg.go
+	${MOCKGEN} -source=internal/repository/currency_rate/repository.go -destination=internal/repository/currency_rate/mocks/repository.go
+	${MOCKGEN} -source=internal/repository/spend/repository.go -destination=internal/repository/spend/mocks/repository.go
+	${MOCKGEN} -source=internal/repository/selected_currency/repository.go -destination=internal/repository/selected_currency/mocks/repository.go
+	${MOCKGEN} -source=internal/clients/currency_rate/currency_rate.go -destination=internal/clients/currency_rate/mocks/currency_rate.go
+	${MOCKGEN} -source=internal/clients/tg/tgclient.go -destination=internal/clients/tg/mocks/tgclient.go
+	${MOCKGEN} -source=internal/service/report/report.go -destination=internal/service/report/mocks/report.go
 
 lint: install-lint
 	${LINTBIN} run
