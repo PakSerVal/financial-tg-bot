@@ -5,6 +5,7 @@
 package mock_messages
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,16 +36,16 @@ func (m *MockCommand) EXPECT() *MockCommandMockRecorder {
 }
 
 // Process mocks base method.
-func (m *MockCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
+func (m *MockCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Process", in)
+	ret := m.ctrl.Call(m, "Process", ctx, in)
 	ret0, _ := ret[0].(*model.MessageOut)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Process indicates an expected call of Process.
-func (mr *MockCommandMockRecorder) Process(in interface{}) *gomock.Call {
+func (mr *MockCommandMockRecorder) Process(ctx, in interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockCommand)(nil).Process), in)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockCommand)(nil).Process), ctx, in)
 }

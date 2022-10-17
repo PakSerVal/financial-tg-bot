@@ -30,6 +30,8 @@ generate: install-mockgen
 	${MOCKGEN} -source=internal/clients/currency_rate/currency_rate.go -destination=internal/clients/currency_rate/mocks/currency_rate.go
 	${MOCKGEN} -source=internal/clients/tg/tgclient.go -destination=internal/clients/tg/mocks/tgclient.go
 	${MOCKGEN} -source=internal/service/report/report.go -destination=internal/service/report/mocks/report.go
+	${MOCKGEN} -source=internal/database/manager.go -destination=internal/database/mocks/manager.go
+	${MOCKGEN} -source=internal/repository/budget/repository.go -destination=internal/repository/budget/mocks/repository.go
 
 lint: install-lint
 	${LINTBIN} run

@@ -1,6 +1,7 @@
 package currency
 
 import (
+	"context"
 	"fmt"
 
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
@@ -35,26 +36,26 @@ func New(next messages.Command, repo selected_currency.Repository) messages.Comm
 	}
 }
 
-func (s *currencyCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
-	if in.Text == cmdName {
+func (s *currencyCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
+	if in.Command == cmdName {
 		return &model.MessageOut{
 			Text:     "В какой валюте вы хотите получать отчеты?",
 			KeyBoard: keyBoard,
 		}, nil
 	}
 
-	if isCurrency(in.Text) {
-		err := s.repo.SaveSelectedCurrency(in.Text, in.UserId)
+	if isCurrency(in.Command) {
+		err := s.repo.SaveSelectedCurrency(ctx, in.Command, in.UserId)
 		if err != nil {
 			return nil, err
 		}
 
 		return &model.MessageOut{
-			Text: fmt.Sprintf("Выбранная валюта: %s", in.Text),
+			Text: fmt.Sprintf("Выбранная валюта: %s", in.Command),
 		}, nil
 	}
 
-	return s.next.Process(in)
+	return s.next.Process(ctx, in)
 }
 
 func isCurrency(msgText string) bool {

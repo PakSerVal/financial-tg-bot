@@ -1,6 +1,7 @@
 package report
 
 import (
+	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -18,32 +19,32 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	command := New(next, service)
 
 	t.Run("not supported", func(t *testing.T) {
-		next.EXPECT().Process(currencyRepo.MessageIn{Text: "not supported"}).Return(&currencyRepo.MessageOut{Text: "test"}, nil)
-		res, err := command.Process(currencyRepo.MessageIn{Text: "not supported"})
+		next.EXPECT().Process(context.TODO(), currencyRepo.MessageIn{Command: "not supported"}).Return(&currencyRepo.MessageOut{Text: "test"}, nil)
+		res, err := command.Process(context.TODO(), currencyRepo.MessageIn{Command: "not supported"})
 
 		assert.NoError(t, err)
 		assert.Equal(t, &currencyRepo.MessageOut{Text: "test"}, res)
 	})
 
 	t.Run("today report", func(t *testing.T) {
-		service.EXPECT().MakeReport(int64(1), gomock.Any(), "сегодня").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
-		res, err := command.Process(currencyRepo.MessageIn{Text: "today", UserId: 1})
+		service.EXPECT().MakeReport(context.TODO(), int64(1), gomock.Any(), "сегодня").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
+		res, err := command.Process(context.TODO(), currencyRepo.MessageIn{Command: "today", UserId: 1})
 
 		assert.NoError(t, err)
 		assert.Equal(t, &currencyRepo.MessageOut{Text: "test report"}, res)
 	})
 
 	t.Run("month report", func(t *testing.T) {
-		service.EXPECT().MakeReport(int64(1), gomock.Any(), "в текущем месяце").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
-		res, err := command.Process(currencyRepo.MessageIn{Text: "month", UserId: 1})
+		service.EXPECT().MakeReport(context.TODO(), int64(1), gomock.Any(), "в текущем месяце").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
+		res, err := command.Process(context.TODO(), currencyRepo.MessageIn{Command: "month", UserId: 1})
 
 		assert.NoError(t, err)
 		assert.Equal(t, &currencyRepo.MessageOut{Text: "test report"}, res)
 	})
 
 	t.Run("year report", func(t *testing.T) {
-		service.EXPECT().MakeReport(int64(1), gomock.Any(), "в этом году").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
-		res, err := command.Process(currencyRepo.MessageIn{Text: "year", UserId: 1})
+		service.EXPECT().MakeReport(context.TODO(), int64(1), gomock.Any(), "в этом году").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
+		res, err := command.Process(context.TODO(), currencyRepo.MessageIn{Command: "year", UserId: 1})
 
 		assert.NoError(t, err)
 		assert.Equal(t, &currencyRepo.MessageOut{Text: "test report"}, res)

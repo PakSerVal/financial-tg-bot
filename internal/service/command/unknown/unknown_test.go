@@ -1,6 +1,7 @@
 package unknown
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,7 @@ import (
 func TestUnknownCommand_Process(t *testing.T) {
 	command := New()
 
-	res, err := command.Process(model.MessageIn{Text: "unknown command"})
+	res, err := command.Process(context.TODO(), model.MessageIn{Command: "unknown command"})
 	assert.NoError(t, err)
 	assert.Equal(t, &model.MessageOut{Text: "не знаю такую команду"}, res)
 }

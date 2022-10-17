@@ -1,6 +1,7 @@
 package report
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
-	customErrors "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/err_msg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
@@ -30,7 +30,7 @@ var currencyUnitName = map[string]string{
 }
 
 type Service interface {
-	MakeReport(userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error)
+	MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error)
 }
 
 type service struct {
@@ -47,8 +47,8 @@ func New(spendRepo spend.Repository, currencyRateRepo currency_rate.Repository, 
 	}
 }
 
-func (r *service) MakeReport(userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error) {
-	records, err := r.spendRepo.GetByTimeSince(timeSince)
+func (r *service) MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error) {
+	records, err := r.spendRepo.GetByTimeSince(ctx, userId, timeSince)
 	if err != nil {
 		return nil, errors.Wrap(err, "spendRepo: get by time since")
 	}
@@ -59,27 +59,28 @@ func (r *service) MakeReport(userId int64, timeSince time.Time, timeRangePrefix 
 		}, nil
 	}
 
-	cur, err := r.getSelectedCurrency(userId)
+	cur, err := r.getSelectedCurrency(ctx, userId)
 	if err != nil {
 		return nil, errors.Wrap(err, "get selected currency error")
 	}
 
-	unitName, ok := currencyUnitName[cur.Currency]
+	unitName, ok := currencyUnitName[cur]
 	if !ok {
 		unitName = "руб"
 	}
 
-	rate, err := r.currencyRateRepo.GetRateByCurrency(cur.Currency)
-	if errors.Is(err, currency_rate.ErrCurrencyRateNotFound) {
-		rate.Value = 1
-	} else {
-		if err != nil {
-			return nil, errors.Wrap(err, "get currency rates error")
-		}
+	rate, err := r.currencyRateRepo.GetRateByCurrency(ctx, cur)
+	if err != nil {
+		return nil, errors.Wrap(err, "get currency rates error")
+	}
+
+	rateValue := int64(100)
+	if rate != nil {
+		rateValue = rate.Value
 	}
 
 	var msgTextParts []string
-	for category, sum := range groupRecords(records, rate.Value) {
+	for category, sum := range groupRecords(records, rateValue) {
 		msgTextParts = append(msgTextParts, fmt.Sprintf("%s - %.2f %s.", category, sum, unitName))
 	}
 	sort.Strings(msgTextParts)
@@ -89,19 +90,18 @@ func (r *service) MakeReport(userId int64, timeSince time.Time, timeRangePrefix 
 	}, nil
 }
 
-func (r *service) getSelectedCurrency(userId int64) (model.SelectedCurrency, error) {
-	selectedCurrency, err := r.selectedCurrencyRepo.GetSelectedCurrency(userId)
-
-	if errors.Is(err, customErrors.CurrencyNotFound) {
-		selectedCurrency.Currency = "руб"
-		return selectedCurrency, nil
-	}
+func (r *service) getSelectedCurrency(ctx context.Context, userId int64) (string, error) {
+	selectedCurrency, err := r.selectedCurrencyRepo.GetSelectedCurrency(ctx, userId)
 
 	if err != nil {
-		return selectedCurrency, err
+		return "", err
 	}
 
-	return selectedCurrency, nil
+	if selectedCurrency == nil {
+		return "руб", nil
+	}
+
+	return selectedCurrency.Code, nil
 }
 
 func groupRecords(records []model.Spend, rate int64) map[string]float64 {

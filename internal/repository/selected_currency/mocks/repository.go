@@ -5,6 +5,7 @@
 package mock_selected_currency
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,30 +36,30 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetSelectedCurrency mocks base method.
-func (m *MockRepository) GetSelectedCurrency(userId int64) (model.SelectedCurrency, error) {
+func (m *MockRepository) GetSelectedCurrency(ctx context.Context, userId int64) (*model.SelectedCurrency, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSelectedCurrency", userId)
-	ret0, _ := ret[0].(model.SelectedCurrency)
+	ret := m.ctrl.Call(m, "GetSelectedCurrency", ctx, userId)
+	ret0, _ := ret[0].(*model.SelectedCurrency)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSelectedCurrency indicates an expected call of GetSelectedCurrency.
-func (mr *MockRepositoryMockRecorder) GetSelectedCurrency(userId interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetSelectedCurrency(ctx, userId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSelectedCurrency", reflect.TypeOf((*MockRepository)(nil).GetSelectedCurrency), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSelectedCurrency", reflect.TypeOf((*MockRepository)(nil).GetSelectedCurrency), ctx, userId)
 }
 
 // SaveSelectedCurrency mocks base method.
-func (m *MockRepository) SaveSelectedCurrency(currency string, userId int64) error {
+func (m *MockRepository) SaveSelectedCurrency(ctx context.Context, currency string, userId int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveSelectedCurrency", currency, userId)
+	ret := m.ctrl.Call(m, "SaveSelectedCurrency", ctx, currency, userId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveSelectedCurrency indicates an expected call of SaveSelectedCurrency.
-func (mr *MockRepositoryMockRecorder) SaveSelectedCurrency(currency, userId interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) SaveSelectedCurrency(ctx, currency, userId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSelectedCurrency", reflect.TypeOf((*MockRepository)(nil).SaveSelectedCurrency), currency, userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveSelectedCurrency", reflect.TypeOf((*MockRepository)(nil).SaveSelectedCurrency), ctx, currency, userId)
 }

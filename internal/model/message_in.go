@@ -1,6 +1,7 @@
 package model
 
 type MessageIn struct {
-	Text   string
-	UserId int64
+	Command   string
+	Arguments string
+	UserId    int64
 }

@@ -1,6 +1,10 @@
 package model
 
+import "time"
+
 type SelectedCurrency struct {
-	Currency string
-	UserId   int64
+	Id        int64
+	Code      string
+	UserId    int64
+	CreatedAt time.Time
 }

@@ -1,11 +1,13 @@
 package report
 
 import (
+	"context"
 	"time"
 
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
 )
 
 const (
@@ -29,28 +31,31 @@ func New(
 	}
 }
 
-func (r *reportCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
+func (r *reportCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
 	now := time.Now()
-	switch in.Text {
+	switch in.Command {
 	case commandToday:
 		return r.reportService.MakeReport(
+			ctx,
 			in.UserId,
-			time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()),
+			utils.BeginOfDay(now),
 			"сегодня",
 		)
 	case commandMonth:
 		return r.reportService.MakeReport(
+			ctx,
 			in.UserId,
-			time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()),
+			utils.BeginOfMonth(now),
 			"в текущем месяце",
 		)
 	case commandYear:
 		return r.reportService.MakeReport(
+			ctx,
 			in.UserId,
-			time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location()),
+			utils.BeginOfYear(now),
 			"в этом году",
 		)
 	}
 
-	return r.next.Process(in)
+	return r.next.Process(ctx, in)
 }
