@@ -5,6 +5,7 @@
 package mock_report
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -36,16 +37,16 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // MakeReport mocks base method.
-func (m *MockService) MakeReport(userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error) {
+func (m *MockService) MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MakeReport", userId, timeSince, timeRangePrefix)
+	ret := m.ctrl.Call(m, "MakeReport", ctx, userId, timeSince, timeRangePrefix)
 	ret0, _ := ret[0].(*model.MessageOut)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // MakeReport indicates an expected call of MakeReport.
-func (mr *MockServiceMockRecorder) MakeReport(userId, timeSince, timeRangePrefix interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) MakeReport(ctx, userId, timeSince, timeRangePrefix interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeReport", reflect.TypeOf((*MockService)(nil).MakeReport), userId, timeSince, timeRangePrefix)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeReport", reflect.TypeOf((*MockService)(nil).MakeReport), ctx, userId, timeSince, timeRangePrefix)
 }

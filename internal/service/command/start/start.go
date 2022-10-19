@@ -1,6 +1,8 @@
 package start
 
 import (
+	"context"
+
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
 )
@@ -10,6 +12,7 @@ const cmdName = "start"
 const menuText = "Бот для учета финансов\n\n" +
 	"Добавить трату: 350 продукты\n\n" +
 	"Изменить валюту: /currency\n\n" +
+	"Установить месячный бюджет: /budget 30000\n\n" +
 	"Получить отчет: \n" +
 	"- за сегодня: /today\n" +
 	"- за месяц: /month\n" +
@@ -25,12 +28,12 @@ func New(next messages.Command) messages.Command {
 	}
 }
 
-func (s *startCommand) Process(in model.MessageIn) (*model.MessageOut, error) {
-	if in.Text == cmdName {
+func (s *startCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
+	if in.Command == cmdName {
 		return &model.MessageOut{
 			Text: menuText,
 		}, nil
 	}
 
-	return s.next.Process(in)
+	return s.next.Process(ctx, in)
 }

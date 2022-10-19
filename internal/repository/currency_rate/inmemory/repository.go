@@ -1,6 +1,7 @@
 package inmemory
 
 import (
+	"context"
 	"sync"
 
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
@@ -18,9 +19,9 @@ func New() currency_rate.Repository {
 	}
 }
 
-func (i *inmemory) SaveRate(name string, rate int64) (model.CurrencyRate, error) {
+func (i *inmemory) SaveRate(ctx context.Context, name string, rate int64) error {
 	rateRecord := model.CurrencyRate{
-		Name:  name,
+		Code:  name,
 		Value: rate,
 	}
 
@@ -28,16 +29,16 @@ func (i *inmemory) SaveRate(name string, rate int64) (model.CurrencyRate, error)
 	defer i.mu.Unlock()
 	i.rates[name] = rateRecord
 
-	return rateRecord, nil
+	return nil
 }
 
-func (i *inmemory) GetRateByCurrency(currency string) (model.CurrencyRate, error) {
+func (i *inmemory) GetRateByCurrency(ctx context.Context, currency string) (*model.CurrencyRate, error) {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 	rate, ok := i.rates[currency]
 	if !ok {
-		return rate, currency_rate.ErrCurrencyRateNotFound
+		return nil, nil
 	}
 
-	return rate, nil
+	return &rate, nil
 }

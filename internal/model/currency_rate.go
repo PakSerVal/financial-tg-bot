@@ -1,6 +1,10 @@
 package model
 
+import "time"
+
 type CurrencyRate struct {
-	Name  string
-	Value int64
+	Id        int64
+	Code      string
+	Value     int64
+	CreatedAt time.Time
 }

@@ -5,6 +5,8 @@
 package mock_spend
 
 import (
+	context "context"
+	sql "database/sql"
 	reflect "reflect"
 	time "time"
 
@@ -36,31 +38,45 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetByTimeSince mocks base method.
-func (m *MockRepository) GetByTimeSince(timeSince time.Time) ([]model.Spend, error) {
+func (m *MockRepository) GetByTimeSince(ctx context.Context, userId int64, timeSince time.Time) ([]model.Spend, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByTimeSince", timeSince)
+	ret := m.ctrl.Call(m, "GetByTimeSince", ctx, userId, timeSince)
 	ret0, _ := ret[0].([]model.Spend)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByTimeSince indicates an expected call of GetByTimeSince.
-func (mr *MockRepositoryMockRecorder) GetByTimeSince(timeSince interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetByTimeSince(ctx, userId, timeSince interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTimeSince", reflect.TypeOf((*MockRepository)(nil).GetByTimeSince), timeSince)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTimeSince", reflect.TypeOf((*MockRepository)(nil).GetByTimeSince), ctx, userId, timeSince)
 }
 
-// Save mocks base method.
-func (m *MockRepository) Save(sum int64, category string) (model.Spend, error) {
+// GetByTimeSinceTx mocks base method.
+func (m *MockRepository) GetByTimeSinceTx(tx *sql.Tx, ctx context.Context, userId int64, timeSince time.Time) ([]model.Spend, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", sum, category)
-	ret0, _ := ret[0].(model.Spend)
+	ret := m.ctrl.Call(m, "GetByTimeSinceTx", tx, ctx, userId, timeSince)
+	ret0, _ := ret[0].([]model.Spend)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Save indicates an expected call of Save.
-func (mr *MockRepositoryMockRecorder) Save(sum, category interface{}) *gomock.Call {
+// GetByTimeSinceTx indicates an expected call of GetByTimeSinceTx.
+func (mr *MockRepositoryMockRecorder) GetByTimeSinceTx(tx, ctx, userId, timeSince interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), sum, category)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTimeSinceTx", reflect.TypeOf((*MockRepository)(nil).GetByTimeSinceTx), tx, ctx, userId, timeSince)
+}
+
+// SaveTx mocks base method.
+func (m *MockRepository) SaveTx(tx *sql.Tx, ctx context.Context, sum int64, category string, userId int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveTx", tx, ctx, sum, category, userId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveTx indicates an expected call of SaveTx.
+func (mr *MockRepositoryMockRecorder) SaveTx(tx, ctx, sum, category, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTx", reflect.TypeOf((*MockRepository)(nil).SaveTx), tx, ctx, sum, category, userId)
 }

@@ -1,50 +1,116 @@
 package spend
 
 import (
+	"context"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/database"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	mockBudget "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/budget/mocks"
 	mockSpend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/mocks"
 	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/mocks"
 )
 
 func TestSpendCommand_Process(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+
 	ctrl := gomock.NewController(t)
 	next := mockMessages.NewMockCommand(ctrl)
-	sendRepo := mockSpend.NewMockRepository(ctrl)
+	spendRepo := mockSpend.NewMockRepository(ctrl)
+	budgetRepo := mockBudget.NewMockRepository(ctrl)
+	sqlManager := database.NewSqlManager(db)
 
-	command := New(next, sendRepo)
-
-	gomock.InOrder(
-		next.EXPECT().Process(model.MessageIn{Text: "not supported text"}).Return(&model.MessageOut{Text: "привет"}, nil),
-		sendRepo.EXPECT().Save(int64(12300), "такси").Return(model.Spend{}, errors.New("some error")),
-		sendRepo.EXPECT().Save(int64(12300), "такси").Return(model.Spend{
-			ID:       1,
-			Price:    123,
-			Category: "Такси",
-		}, nil),
-	)
+	command := New(next, spendRepo, budgetRepo, sqlManager)
 
 	t.Run("not supported", func(t *testing.T) {
-		res, err := command.Process(model.MessageIn{Text: "not supported text"})
+		next.EXPECT().Process(context.TODO(), model.MessageIn{Command: "not supported text", UserId: 123}).Return(&model.MessageOut{Text: "привет"}, nil)
+
+		res, err := command.Process(context.TODO(), model.MessageIn{Command: "not supported text", UserId: 123})
 
 		assert.NoError(t, err)
 		assert.Equal(t, &model.MessageOut{Text: "привет"}, res)
 	})
 
-	t.Run("repo error", func(t *testing.T) {
-		_, err := command.Process(model.MessageIn{Text: "123 такси"})
+	t.Run("spendRepo save error", func(t *testing.T) {
+		mock.ExpectBegin()
+		spendRepo.EXPECT().SaveTx(gomock.Any(), context.TODO(), int64(12300), "такси", int64(123)).Return(errors.New("some error"))
+		mock.ExpectRollback()
+
+		_, err := command.Process(context.TODO(), model.MessageIn{Command: "123 такси", UserId: 123})
 
 		assert.Error(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("spendRepo get by time since error", func(t *testing.T) {
+		mock.ExpectBegin()
+		spendRepo.EXPECT().SaveTx(gomock.Any(), context.TODO(), int64(12300), "такси", int64(123)).Return(nil)
+		spendRepo.EXPECT().GetByTimeSinceTx(gomock.Any(), context.TODO(), int64(123), gomock.Any()).Return(nil, errors.New("some error"))
+		mock.ExpectRollback()
+
+		_, err := command.Process(context.TODO(), model.MessageIn{Command: "123 такси", UserId: 123})
+
+		assert.Error(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("budget exceeded", func(t *testing.T) {
+		mock.ExpectBegin()
+		spendRepo.EXPECT().SaveTx(gomock.Any(), context.TODO(), int64(100), "такси", int64(123)).Return(nil)
+		spendRepo.EXPECT().GetByTimeSinceTx(gomock.Any(), context.TODO(), int64(123), gomock.Any()).Return([]model.Spend{
+			{
+				Id:       1,
+				Price:    3000000,
+				Category: "cat1",
+				UserId:   123,
+			},
+			{
+				Id:       2,
+				Price:    1,
+				Category: "cat2",
+				UserId:   123,
+			},
+		}, nil)
+		budgetRepo.EXPECT().GetBudgetTx(gomock.Any(), context.TODO(), int64(123)).Return(&model.Budget{
+			Value: 3000000,
+		}, nil)
+		mock.ExpectRollback()
+
+		res, err := command.Process(context.TODO(), model.MessageIn{Command: "1 такси", UserId: 123})
+
+		assert.NoError(t, err)
+		assert.Equal(t, &model.MessageOut{Text: "Трата не была добавлена, так как превышен лимит за текущий месяц в 30000.00 руб"}, res)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("success", func(t *testing.T) {
-		res, err := command.Process(model.MessageIn{Text: "123 такси"})
+		mock.ExpectBegin()
+		spendRepo.EXPECT().SaveTx(gomock.Any(), context.TODO(), int64(12300), "такси", int64(123)).Return(nil)
+		spendRepo.EXPECT().GetByTimeSinceTx(gomock.Any(), context.TODO(), int64(123), gomock.Any()).Return([]model.Spend{
+			{
+				Id:       1,
+				Price:    30000,
+				Category: "cat1",
+				UserId:   123,
+			},
+			{
+				Id:       2,
+				Price:    1,
+				Category: "cat2",
+				UserId:   123,
+			},
+		}, nil)
+		budgetRepo.EXPECT().GetBudgetTx(gomock.Any(), context.TODO(), int64(123)).Return(nil, nil)
+		mock.ExpectCommit()
+
+		res, err := command.Process(context.TODO(), model.MessageIn{Command: "123 такси", UserId: 123})
 
 		assert.NoError(t, err)
-		assert.Equal(t, &model.MessageOut{Text: "Добавлена трата: Такси 123.00 руб."}, res)
+		assert.Equal(t, &model.MessageOut{Text: "Добавлена трата: такси 123.00 руб."}, res)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }

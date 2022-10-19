@@ -1,6 +1,8 @@
 package inmemory
 
 import (
+	"context"
+
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model/err_msg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
@@ -16,19 +18,19 @@ func New() selected_currency.Repository {
 	}
 }
 
-func (i *inmemory) SaveSelectedCurrency(currency string, userId int64) error {
+func (i *inmemory) SaveSelectedCurrency(ctx context.Context, currency string, userId int64) error {
 	i.selectedCurrency[userId] = model.SelectedCurrency{
-		Currency: currency,
-		UserId:   userId,
+		Code:   currency,
+		UserId: userId,
 	}
 
 	return nil
 }
 
-func (i *inmemory) GetSelectedCurrency(userId int64) (model.SelectedCurrency, error) {
+func (i *inmemory) GetSelectedCurrency(ctx context.Context, userId int64) (*model.SelectedCurrency, error) {
 	if cur, ok := i.selectedCurrency[userId]; ok {
-		return cur, nil
+		return &cur, nil
 	}
 
-	return model.SelectedCurrency{}, err_msg.CurrencyNotFound
+	return nil, err_msg.CurrencyNotFound
 }

@@ -28,7 +28,7 @@ func NewCurrencyRatePuller(
 }
 
 func (c *CurrencyRatePuller) Pull(ctx context.Context) {
-	c.updateRates()
+	c.updateRates(ctx)
 
 	ticker := time.NewTicker(pullingInterval)
 	defer ticker.Stop()
@@ -39,12 +39,12 @@ func (c *CurrencyRatePuller) Pull(ctx context.Context) {
 			return
 
 		case <-ticker.C:
-			c.updateRates()
+			c.updateRates(ctx)
 		}
 	}
 }
 
-func (c *CurrencyRatePuller) updateRates() {
+func (c *CurrencyRatePuller) updateRates(ctx context.Context) {
 	log.Println("pulling rates...")
 	rates, err := c.apiClient.GetCurrencyRates()
 	if err != nil {
@@ -53,7 +53,7 @@ func (c *CurrencyRatePuller) updateRates() {
 	}
 
 	for _, rate := range rates {
-		_, err = c.currencyRepo.SaveRate(rate.Name, utils.ConvertFloatToKopecks(rate.Rate))
+		err = c.currencyRepo.SaveRate(ctx, rate.Name, utils.ConvertFloatToKopecks(rate.Rate))
 		if err != nil {
 			log.Println("saving rate to db error:", err)
 			return

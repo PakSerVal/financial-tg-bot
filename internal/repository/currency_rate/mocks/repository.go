@@ -5,6 +5,7 @@
 package mock_currency_rate
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,31 +36,30 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetRateByCurrency mocks base method.
-func (m *MockRepository) GetRateByCurrency(currency string) (model.CurrencyRate, error) {
+func (m *MockRepository) GetRateByCurrency(ctx context.Context, currency string) (*model.CurrencyRate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRateByCurrency", currency)
-	ret0, _ := ret[0].(model.CurrencyRate)
+	ret := m.ctrl.Call(m, "GetRateByCurrency", ctx, currency)
+	ret0, _ := ret[0].(*model.CurrencyRate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRateByCurrency indicates an expected call of GetRateByCurrency.
-func (mr *MockRepositoryMockRecorder) GetRateByCurrency(currency interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetRateByCurrency(ctx, currency interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRateByCurrency", reflect.TypeOf((*MockRepository)(nil).GetRateByCurrency), currency)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRateByCurrency", reflect.TypeOf((*MockRepository)(nil).GetRateByCurrency), ctx, currency)
 }
 
 // SaveRate mocks base method.
-func (m *MockRepository) SaveRate(name string, value int64) (model.CurrencyRate, error) {
+func (m *MockRepository) SaveRate(ctx context.Context, name string, value int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveRate", name, value)
-	ret0, _ := ret[0].(model.CurrencyRate)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "SaveRate", ctx, name, value)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SaveRate indicates an expected call of SaveRate.
-func (mr *MockRepositoryMockRecorder) SaveRate(name, value interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) SaveRate(ctx, name, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRate", reflect.TypeOf((*MockRepository)(nil).SaveRate), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRate", reflect.TypeOf((*MockRepository)(nil).SaveRate), ctx, name, value)
 }

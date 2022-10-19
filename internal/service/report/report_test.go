@@ -1,6 +1,7 @@
 package report
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -22,33 +23,33 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	service := New(sendRepo, currencyRateRepo, selectedCurrencyRepo)
 
 	t.Run("send repo error", func(t *testing.T) {
-		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]currencyRepo.Spend{}, errors.New("some error")).Times(1)
-		_, err := service.MakeReport(1, time.Now(), "сегодня")
+		sendRepo.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return([]currencyRepo.Spend{}, errors.New("some error")).Times(1)
+		_, err := service.MakeReport(context.TODO(), 1, time.Now(), "сегодня")
 
 		assert.Error(t, err)
 	})
 
 	t.Run("no records", func(t *testing.T) {
-		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]currencyRepo.Spend{}, nil).Times(1)
-		res, err := service.MakeReport(1, time.Now(), "сегодня")
+		sendRepo.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return([]currencyRepo.Spend{}, nil).Times(1)
+		res, err := service.MakeReport(context.TODO(), 1, time.Now(), "сегодня")
 
 		assert.NoError(t, err)
 		assert.Equal(t, &currencyRepo.MessageOut{Text: "Расходов сегодня нет"}, res)
 	})
 
 	t.Run("selected currency repo error", func(t *testing.T) {
-		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]currencyRepo.Spend{{ID: 1}}, nil).Times(1)
-		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(gomock.Any()).Return(currencyRepo.SelectedCurrency{}, errors.New("some error")).Times(1)
-		_, err := service.MakeReport(1, time.Now(), "сегодня")
+		sendRepo.EXPECT().GetByTimeSince(gomock.Any(), int64(1), gomock.Any()).Return([]currencyRepo.Spend{{Id: 1}}, nil).Times(1)
+		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(context.TODO(), gomock.Any()).Return(nil, errors.New("some error")).Times(1)
+		_, err := service.MakeReport(context.TODO(), int64(1), time.Now(), "сегодня")
 
 		assert.Error(t, err)
 	})
 
 	t.Run("currency rate repo error", func(t *testing.T) {
-		sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]currencyRepo.Spend{{ID: 1}}, nil).Times(1)
-		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(gomock.Any()).Return(currencyRepo.SelectedCurrency{Currency: "EUR"}, nil).Times(1)
-		currencyRateRepo.EXPECT().GetRateByCurrency(gomock.Any()).Return(currencyRepo.CurrencyRate{}, errors.New("some error")).Times(1)
-		_, err := service.MakeReport(1, time.Now(), "сегодня")
+		sendRepo.EXPECT().GetByTimeSince(context.TODO(), int64(1), gomock.Any()).Return([]currencyRepo.Spend{{Id: 1}}, nil).Times(1)
+		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(context.TODO(), gomock.Any()).Return(&currencyRepo.SelectedCurrency{Code: "EUR"}, nil).Times(1)
+		currencyRateRepo.EXPECT().GetRateByCurrency(context.TODO(), gomock.Any()).Return(nil, errors.New("some error")).Times(1)
+		_, err := service.MakeReport(context.TODO(), int64(1), time.Now(), "сегодня")
 
 		assert.Error(t, err)
 	})
@@ -62,36 +63,42 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 
 	service := New(sendRepo, currencyRateRepo, selectedCurrencyRepo)
 
-	sendRepo.EXPECT().GetByTimeSince(gomock.Any()).Return([]currencyRepo.Spend{
+	sendRepo.EXPECT().GetByTimeSince(context.TODO(), int64(1), gomock.Any()).Return([]currencyRepo.Spend{
 		{
-			ID:       1,
+			Id:       1,
 			Price:    10000,
 			Category: "Такси",
+			UserId:   1,
 		},
 		{
-			ID:       2,
+			Id:       2,
 			Price:    40000,
 			Category: "Такси",
+			UserId:   1,
 		},
 		{
-			ID:       3,
+			Id:       3,
 			Price:    20000,
 			Category: "Такси",
+			UserId:   1,
 		},
 		{
-			ID:       4,
+			Id:       4,
 			Price:    20000,
 			Category: "Продукты",
+			UserId:   1,
 		},
 		{
-			ID:       4,
+			Id:       4,
 			Price:    90000,
 			Category: "Продукты",
+			UserId:   1,
 		},
 		{
-			ID:       5,
+			Id:       5,
 			Price:    200000,
 			Category: "Инвестиции",
+			UserId:   1,
 		},
 	}, nil).Times(3)
 
@@ -147,17 +154,17 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			selectedCurrencyRepo.EXPECT().GetSelectedCurrency(test.in.userId).Return(currencyRepo.SelectedCurrency{
-				Currency: test.currency,
-				UserId:   test.in.userId,
+			selectedCurrencyRepo.EXPECT().GetSelectedCurrency(context.TODO(), test.in.userId).Return(&currencyRepo.SelectedCurrency{
+				Code:   test.currency,
+				UserId: test.in.userId,
 			}, nil).Times(1)
 
-			currencyRateRepo.EXPECT().GetRateByCurrency(test.currency).Return(currencyRepo.CurrencyRate{
-				Name:  test.currency,
+			currencyRateRepo.EXPECT().GetRateByCurrency(context.TODO(), test.currency).Return(&currencyRepo.CurrencyRate{
+				Code:  test.currency,
 				Value: test.rate,
 			}, nil).Times(1)
 
-			res, err := service.MakeReport(test.in.userId, time.Now(), test.in.prefix)
+			res, err := service.MakeReport(context.TODO(), test.in.userId, time.Now(), test.in.prefix)
 
 			assert.NoError(t, err)
 			assert.Equal(t, test.wanted, res)
