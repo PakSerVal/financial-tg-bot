@@ -2,6 +2,7 @@ package inmemory
 
 import (
 	"context"
+	"database/sql"
 	"strconv"
 	"testing"
 	"time"
@@ -11,8 +12,10 @@ import (
 )
 
 func Test_Save(t *testing.T) {
-	repo := New()
-	err := repo.Save(context.TODO(), 1234500, "category", 123)
+	repo := inmemory{
+		records: map[int64][]model.Spend{},
+	}
+	err := repo.SaveTx(&sql.Tx{}, context.TODO(), 1234500, "category", 123)
 
 	res := repo.records[123][0]
 
@@ -24,7 +27,7 @@ func Test_Save(t *testing.T) {
 
 func Test_GetByTimeSince(t *testing.T) {
 	now := time.Now()
-	repo := New()
+	repo := inmemory{records: map[int64][]model.Spend{}}
 
 	recordHourAgo := model.Spend{
 		Id:        1,
