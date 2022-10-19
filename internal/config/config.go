@@ -14,8 +14,9 @@ const (
 )
 
 type Config struct {
-	token  string
-	dbConn ConnConfig
+	token       string
+	useInmemory bool
+	dbConn      ConnConfig
 }
 
 type ConnConfig struct {
@@ -31,6 +32,7 @@ func New() (*Config, error) {
 	c := &Config{}
 
 	flag.StringVar(&c.token, "token", "", "bot token")
+	flag.BoolVar(&c.useInmemory, "useInmemory", false, "inmemory usage")
 	parseDbConn(&c.dbConn)
 
 	flag.Parse()
@@ -44,6 +46,10 @@ func (c *Config) Token() string {
 
 func (c *Config) DbConn() *ConnConfig {
 	return &c.dbConn
+}
+
+func (c *Config) UseInmemory() bool {
+	return c.useInmemory
 }
 
 func parseDbConn(c *ConnConfig) {

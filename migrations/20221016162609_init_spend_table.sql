@@ -3,10 +3,10 @@
 create table spend
 (
     id         integer generated always as identity,
-    price      bigint,
-    user_id    bigint,
-    category   text,
-    created_at timestamp
+    price      bigint not null,
+    user_id    bigint not null,
+    category   text not null,
+    created_at timestamp not null default current_timestamp
 );
 
 -- Составной b-tree индекс по столбцам user_id и created_at

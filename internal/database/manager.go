@@ -31,7 +31,7 @@ func (m *sqlManager) InTransaction(ctx context.Context, callback func(tx *sql.Tx
 	defer func() {
 		if p := recover(); p != nil {
 			err = tx.Rollback()
-			panic(p)
+			log.Println("error in recover")
 		}
 	}()
 

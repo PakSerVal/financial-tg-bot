@@ -3,10 +3,10 @@
 create table budget
 (
     id         integer generated always as identity,
-    user_id    bigint unique,
-    value      bigint,
-    created_at timestamp,
-    updated_at timestamp
+    user_id    bigint unique not null,
+    value      bigint not null,
+    created_at timestamp not null default current_timestamp,
+    updated_at timestamp not null default current_timestamp
 );
 -- +goose StatementEnd
 

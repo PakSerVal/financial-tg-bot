@@ -9,9 +9,15 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/config"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/database"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/budget"
+	currencyRateRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	currencyRateDB "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/db"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/inmemory"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	selectedCurrencyDB "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/db"
+	selectedRepoInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/inmemory"
+	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
 	spendDB "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/db"
+	spendRepoInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/inmemory"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/currency_rates"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
@@ -45,7 +51,22 @@ func main() {
 	}
 
 	sqlManager := database.NewSqlManager(db)
-	currencyRepo := currencyRateDB.New(db)
+
+	var currencyRepo currencyRateRepo.Repository
+	var spendRepo spendRepo.Repository
+	var selectedCurrencyRepo selected_currency.Repository
+
+	if cfg.UseInmemory() {
+		currencyRepo = inmemory.New()
+		spendRepo = spendRepoInmemory.New()
+		selectedCurrencyRepo = selectedRepoInmemory.New()
+	} else {
+		currencyRepo = currencyRateDB.New(db)
+		spendRepo = spendDB.New(db)
+		selectedCurrencyRepo = selectedCurrencyDB.New(db)
+	}
+
+	budgetRepo := budget.New(db)
 
 	go func() {
 		currencyRateApiClient := currency_rate.NewCurrencyRateApiClient()
@@ -58,9 +79,6 @@ func main() {
 		log.Fatal("tg client init failed:", err)
 	}
 
-	spendRepo := spendDB.New(db)
-	budgetRepo := budget.New(db)
-	selectedCurrencyRepo := selectedCurrencyDB.New(db)
 	reportService := report.New(spendRepo, currencyRepo, selectedCurrencyRepo)
 	msgModel := messages.New(tgClient, command.MakeChain(spendRepo, selectedCurrencyRepo, reportService, budgetRepo, sqlManager))
 
