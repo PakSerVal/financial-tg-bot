@@ -1,0 +1,1 @@
+Описание архитектуры: https://miro.com/app/board/uXjVOs7j4ng=/
