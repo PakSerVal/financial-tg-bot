@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"github.com/pkg/errors"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
+	"go.uber.org/zap"
 )
 
 type SqlManager interface {
@@ -31,14 +32,14 @@ func (m *sqlManager) InTransaction(ctx context.Context, callback func(tx *sql.Tx
 	defer func() {
 		if p := recover(); p != nil {
 			err = tx.Rollback()
-			log.Println("error in recover")
+			logger.Error("error in recover")
 		}
 	}()
 
 	ok, errCb := callback(tx, ctx)
 	if errCb != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Println("error rolling back a transaction: ", rollbackErr)
+			logger.Error("error rolling back a transaction", zap.Error(rollbackErr))
 		}
 
 		return errors.WithStack(errCb)

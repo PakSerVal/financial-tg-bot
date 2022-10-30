@@ -28,14 +28,14 @@ func New(next messages.Command, repo budget.Repository) messages.Command {
 	}
 }
 
-func (s *budgetCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
+func (b *budgetCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
 	if in.Command == cmdName {
 		limit, err := strconv.ParseFloat(in.Arguments, 64)
 		if err != nil {
-			return nil, err
+			return b.next.Process(ctx, in)
 		}
 
-		err = s.repo.SaveBudget(ctx, in.UserId, utils.ConvertFloatToKopecks(limit))
+		err = b.repo.SaveBudget(ctx, in.UserId, utils.ConvertFloatToKopecks(limit))
 		if err != nil {
 			return nil, errors.Wrap(err, "saving budget error")
 		}
@@ -45,5 +45,9 @@ func (s *budgetCommand) Process(ctx context.Context, in model.MessageIn) (*model
 		}, nil
 	}
 
-	return s.next.Process(ctx, in)
+	return b.next.Process(ctx, in)
+}
+
+func (b *budgetCommand) Name() string {
+	return cmdName
 }

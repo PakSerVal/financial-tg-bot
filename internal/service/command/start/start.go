@@ -37,3 +37,7 @@ func (s *startCommand) Process(ctx context.Context, in model.MessageIn) (*model.
 
 	return s.next.Process(ctx, in)
 }
+
+func (s *startCommand) Name() string {
+	return cmdName
+}

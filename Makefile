@@ -7,6 +7,13 @@ LINTVER=v1.49.0
 LINTBIN=${BINDIR}/lint_${GOVER}_${LINTVER}
 PACKAGE=gitlab.ozon.dev/paksergey94/telegram-bot/cmd/bot
 
+dev:
+	go run ${PACKAGE} -dev
+
+prod:
+	mkdir -p data
+	go run ${PACKAGE} 2>&1 | tee data/log.txt
+
 all: format build test lint
 
 build: bindir

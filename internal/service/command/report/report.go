@@ -59,3 +59,7 @@ func (r *reportCommand) Process(ctx context.Context, in model.MessageIn) (*model
 
 	return r.next.Process(ctx, in)
 }
+
+func (r *reportCommand) Name() string {
+	return "report"
+}

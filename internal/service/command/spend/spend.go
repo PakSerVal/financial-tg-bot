@@ -80,6 +80,10 @@ func (s *spendCommand) Process(ctx context.Context, in model.MessageIn) (*model.
 	return s.next.Process(ctx, in)
 }
 
+func (s *spendCommand) Name() string {
+	return "spend"
+}
+
 func parse(msgText string) (float64, string, bool) {
 	parts := strings.Split(msgText, " ")
 	if len(parts) != 2 {

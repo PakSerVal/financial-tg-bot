@@ -2,12 +2,14 @@ package currency_rates
 
 import (
 	"context"
-	"log"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/currency_rate"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
 	currencyRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
+	"go.uber.org/zap"
 )
 
 const pullingInterval = time.Hour * 12
@@ -45,17 +47,23 @@ func (c *CurrencyRatePuller) Pull(ctx context.Context) {
 }
 
 func (c *CurrencyRatePuller) updateRates(ctx context.Context) {
-	log.Println("pulling rates...")
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"pulling rates",
+	)
+	defer span.Finish()
+
+	logger.Info("pulling rates...")
 	rates, err := c.apiClient.GetCurrencyRates()
 	if err != nil {
-		log.Println("getting rates error:", err)
+		logger.Error("getting rates error", zap.Error(err))
 		return
 	}
 
 	for _, rate := range rates {
 		err = c.currencyRepo.SaveRate(ctx, rate.Name, utils.ConvertFloatToKopecks(rate.Rate))
 		if err != nil {
-			log.Println("saving rate to db error:", err)
+			logger.Error("saving rate to db error:", zap.Error(err))
 			return
 		}
 	}

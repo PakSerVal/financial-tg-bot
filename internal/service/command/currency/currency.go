@@ -36,7 +36,7 @@ func New(next messages.Command, repo selected_currency.Repository) messages.Comm
 	}
 }
 
-func (s *currencyCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
+func (c *currencyCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
 	if in.Command == cmdName {
 		return &model.MessageOut{
 			Text:     "В какой валюте вы хотите получать отчеты?",
@@ -45,17 +45,21 @@ func (s *currencyCommand) Process(ctx context.Context, in model.MessageIn) (*mod
 	}
 
 	if isCurrency(in.Command) {
-		err := s.repo.SaveSelectedCurrency(ctx, in.Command, in.UserId)
+		err := c.repo.SaveSelectedCurrency(ctx, in.Command, in.UserId)
 		if err != nil {
 			return nil, err
 		}
 
 		return &model.MessageOut{
-			Text: fmt.Sprintf("Выбранная валюта: %s", in.Command),
+			Text: fmt.Sprintf("Выбранная валюта: %c", in.Command),
 		}, nil
 	}
 
-	return s.next.Process(ctx, in)
+	return c.next.Process(ctx, in)
+}
+
+func (c *currencyCommand) Name() string {
+	return cmdName
 }
 
 func isCurrency(msgText string) bool {

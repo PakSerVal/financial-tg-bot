@@ -2,15 +2,19 @@ package messages
 
 import (
 	"context"
-	"log"
 
+	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/metrics"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	"go.uber.org/zap"
 )
 
 type Command interface {
 	Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error)
+	Name() string
 }
 
 type Model struct {
@@ -26,24 +30,39 @@ func New(tgClient tg.Client, commandChain Command) *Model {
 }
 
 func (s *Model) ListenIncomingMessages(ctx context.Context) {
-	log.Println("listening for messages")
+	logger.Info("listening for messages")
 	ch := s.tgClient.GetUpdatesChan()
 
 	for update := range ch {
-		if update.Message != nil {
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			coommand := update.Message.Text
-			if update.Message.IsCommand() {
-				coommand = update.Message.Command()
-			}
-
-			err := s.processMessage(ctx, coommand, update.Message.CommandArguments(), update.Message.From.ID)
-
-			if err != nil {
-				log.Println("error processing message:", err)
-			}
+		if update.Message == nil {
+			continue
 		}
+
+		span, ctx := opentracing.StartSpanFromContext(
+			ctx,
+			"incoming message",
+		)
+
+		logger.Info("incoming message",
+			zap.String("user_name", update.Message.From.UserName),
+			zap.String("message test", update.Message.Text),
+		)
+
+		command := update.Message.Text
+		if update.Message.IsCommand() {
+			command = update.Message.Command()
+		}
+
+		err := s.processMessage(ctx, command, update.Message.CommandArguments(), update.Message.From.ID)
+
+		if err != nil {
+			logger.Error("error processing message:", zap.Error(err))
+			metrics.IncomingMessageTotal("failed")
+		} else {
+			metrics.IncomingMessageTotal("success")
+		}
+
+		span.Finish()
 	}
 }
 
