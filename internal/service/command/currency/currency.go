@@ -51,7 +51,7 @@ func (c *currencyCommand) Process(ctx context.Context, in model.MessageIn) (*mod
 		}
 
 		return &model.MessageOut{
-			Text: fmt.Sprintf("Выбранная валюта: %c", in.Command),
+			Text: fmt.Sprintf("Выбранная валюта: %s", in.Command),
 		}, nil
 	}
 
