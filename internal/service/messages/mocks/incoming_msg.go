@@ -35,6 +35,20 @@ func (m *MockCommand) EXPECT() *MockCommandMockRecorder {
 	return m.recorder
 }
 
+// Name mocks base method.
+func (m *MockCommand) Name() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Name")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Name indicates an expected call of Name.
+func (mr *MockCommandMockRecorder) Name() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockCommand)(nil).Name))
+}
+
 // Process mocks base method.
 func (m *MockCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
 	m.ctrl.T.Helper()

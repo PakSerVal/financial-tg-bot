@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/config"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/database"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/budget"
 	currencyRateRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	currencyRateDB "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/db"
@@ -22,6 +26,8 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/currency_rates"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/tracing"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -37,17 +43,20 @@ func main() {
 		}
 	}()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	cfg, err := config.New()
 	if err != nil {
 		log.Fatal("config init failed:", err)
 	}
 
+	logger.InitLogger(cfg)
+	tracing.InitTracing(cfg)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	db, err := database.Connect(cfg.DbConn())
 	if err != nil {
-		log.Fatal("db connect failed:", err)
+		logger.Fatal("db connect failed:", zap.Error(err))
 	}
 
 	sqlManager := database.NewSqlManager(db)
@@ -74,9 +83,18 @@ func main() {
 		currencyRatePuller.Pull(ctx)
 	}()
 
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+
+		err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.HttpPort()), nil)
+		if err != nil {
+			logger.Fatal("error starting http server", zap.Error(err))
+		}
+	}()
+
 	tgClient, err := tg.New(cfg)
 	if err != nil {
-		log.Fatal("tg client init failed:", err)
+		logger.Fatal("db connect failed:", zap.Error(err))
 	}
 
 	reportService := report.New(spendRepo, currencyRepo, selectedCurrencyRepo)

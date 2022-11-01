@@ -16,6 +16,9 @@ const (
 type Config struct {
 	token       string
 	useInmemory bool
+	dev         bool
+	serviceName string
+	httpPort    int64
 	dbConn      ConnConfig
 }
 
@@ -33,6 +36,9 @@ func New() (*Config, error) {
 
 	flag.StringVar(&c.token, "token", "", "bot token")
 	flag.BoolVar(&c.useInmemory, "useInmemory", false, "inmemory usage")
+	flag.BoolVar(&c.dev, "dev", false, "Development mode")
+	flag.StringVar(&c.serviceName, "serviceName", "telegram bot", "Service name")
+	flag.Int64Var(&c.httpPort, "httpPort", 8080, "Http port")
 	parseDbConn(&c.dbConn)
 
 	flag.Parse()
@@ -50,6 +56,18 @@ func (c *Config) DbConn() *ConnConfig {
 
 func (c *Config) UseInmemory() bool {
 	return c.useInmemory
+}
+
+func (c *Config) IsDev() bool {
+	return c.dev
+}
+
+func (c *Config) ServiceName() string {
+	return c.serviceName
+}
+
+func (c *Config) HttpPort() int64 {
+	return c.httpPort
 }
 
 func parseDbConn(c *ConnConfig) {

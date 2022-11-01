@@ -21,11 +21,11 @@ func MakeChain(spendRepo spendRepo.Repository,
 	budgetRepo budget.Repository,
 	sqlManager database.SqlManager,
 ) messages.Command {
-	unknownCmd := unknown.New()
-	currencyCmd := currency.New(unknownCmd, selectedCurrencyRepo)
-	spendCmd := spend.New(currencyCmd, spendRepo, budgetRepo, sqlManager)
-	reportCmd := report.New(spendCmd, reportService)
-	budgetCmd := budgetCommand.New(reportCmd, budgetRepo)
+	unknownCmd := WithObserve(unknown.New())
+	currencyCmd := WithObserve(currency.New(unknownCmd, selectedCurrencyRepo))
+	spendCmd := WithObserve(spend.New(currencyCmd, spendRepo, budgetRepo, sqlManager))
+	reportCmd := WithObserve(report.New(spendCmd, reportService))
+	budgetCmd := WithObserve(budgetCommand.New(reportCmd, budgetRepo))
 
 	return start.New(budgetCmd)
 }

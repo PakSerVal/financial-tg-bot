@@ -18,3 +18,7 @@ func (s *unknownCommand) Process(ctx context.Context, in model.MessageIn) (*mode
 		Text: "не знаю такую команду",
 	}, nil
 }
+
+func (s *unknownCommand) Name() string {
+	return "unknown"
+}

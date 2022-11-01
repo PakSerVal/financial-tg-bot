@@ -2,6 +2,7 @@ package report
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sort"
 	"strings"
@@ -92,6 +93,10 @@ func (r *service) MakeReport(ctx context.Context, userId int64, timeSince time.T
 
 func (r *service) getSelectedCurrency(ctx context.Context, userId int64) (string, error) {
 	selectedCurrency, err := r.selectedCurrencyRepo.GetSelectedCurrency(ctx, userId)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return "руб", nil
+	}
 
 	if err != nil {
 		return "", err
