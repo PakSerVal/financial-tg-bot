@@ -5,12 +5,16 @@ import (
 )
 
 const (
-	defaultPgHost     = "localhost"
-	defaultPgPort     = 5432
-	defaultPgUser     = "postgres"
-	defaultPgPass     = "postgres"
-	defaultPgDatabase = "postgres"
-	defaultSslMode    = "disable"
+	defaultPgHost        = "localhost"
+	defaultPgPort        = 5432
+	defaultPgUser        = "postgres"
+	defaultPgPass        = "postgres"
+	defaultPgDatabase    = "postgres"
+	defaultSslMode       = "disable"
+	defaultRedisHost     = "localhost"
+	defaultRedisPort     = 6379
+	defaultRedisPassword = ""
+	defaultRedisDb       = 0
 )
 
 type Config struct {
@@ -20,6 +24,7 @@ type Config struct {
 	serviceName string
 	httpPort    int64
 	dbConn      ConnConfig
+	redisConn   RedisConfig
 }
 
 type ConnConfig struct {
@@ -31,6 +36,13 @@ type ConnConfig struct {
 	SslMode  string
 }
 
+type RedisConfig struct {
+	Host     string
+	Port     int64
+	Password string
+	Db       int64
+}
+
 func New() (*Config, error) {
 	c := &Config{}
 
@@ -40,6 +52,7 @@ func New() (*Config, error) {
 	flag.StringVar(&c.serviceName, "serviceName", "telegram bot", "Service name")
 	flag.Int64Var(&c.httpPort, "httpPort", 8080, "Http port")
 	parseDbConn(&c.dbConn)
+	parseRedisConn(&c.redisConn)
 
 	flag.Parse()
 
@@ -70,6 +83,10 @@ func (c *Config) HttpPort() int64 {
 	return c.httpPort
 }
 
+func (c *Config) RedisConfig() RedisConfig {
+	return c.redisConn
+}
+
 func parseDbConn(c *ConnConfig) {
 	flag.StringVar(&c.Host, "pgHost", defaultPgHost, "postgres host")
 	flag.Int64Var(&c.Port, "pgPort", defaultPgPort, "postgres port")
@@ -77,4 +94,11 @@ func parseDbConn(c *ConnConfig) {
 	flag.StringVar(&c.Password, "pgPass", defaultPgPass, "postgres password")
 	flag.StringVar(&c.DbName, "pgDatabase", defaultPgDatabase, "postgres database name")
 	flag.StringVar(&c.SslMode, "pgSslMode", defaultSslMode, "postgres ssl mode")
+}
+
+func parseRedisConn(r *RedisConfig) {
+	flag.StringVar(&r.Host, "redisHost", defaultRedisHost, "cache host")
+	flag.Int64Var(&r.Port, "redisPort", defaultRedisPort, "cache port")
+	flag.StringVar(&r.Password, "redisPass", defaultRedisPassword, "cache password")
+	flag.Int64Var(&r.Db, "redisDb", defaultRedisDb, "cache database")
 }

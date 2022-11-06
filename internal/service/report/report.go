@@ -13,6 +13,7 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/cache"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
 )
 
@@ -38,20 +39,39 @@ type service struct {
 	spendRepo            spend.Repository
 	currencyRateRepo     currency_rate.Repository
 	selectedCurrencyRepo selected_currency.Repository
+	spendCache           cache.SpendRepo
 }
 
-func New(spendRepo spend.Repository, currencyRateRepo currency_rate.Repository, selectedCurrencyRepo selected_currency.Repository) Service {
+func New(
+	spendRepo spend.Repository,
+	currencyRateRepo currency_rate.Repository,
+	selectedCurrencyRepo selected_currency.Repository,
+	spendCache cache.SpendRepo,
+) Service {
 	return &service{
 		spendRepo:            spendRepo,
 		currencyRateRepo:     currencyRateRepo,
 		selectedCurrencyRepo: selectedCurrencyRepo,
+		spendCache:           spendCache,
 	}
 }
 
 func (r *service) MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error) {
-	records, err := r.spendRepo.GetByTimeSince(ctx, userId, timeSince)
+	records, err := r.spendCache.GetByTimeSince(ctx, userId, timeSince)
 	if err != nil {
-		return nil, errors.Wrap(err, "spendRepo: get by time since")
+		return nil, errors.Wrap(err, "cache: get spends by time since")
+	}
+
+	if records == nil {
+		records, err = r.spendRepo.GetByTimeSince(ctx, userId, timeSince)
+		if err != nil {
+			return nil, errors.Wrap(err, "spendRepo: get by time since")
+		}
+
+		err = r.spendCache.Save(ctx, userId, timeSince, records)
+		if err != nil {
+			return nil, errors.Wrap(err, "cache: saving spends error")
+		}
 	}
 
 	if len(records) == 0 {

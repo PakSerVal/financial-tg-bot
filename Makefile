@@ -39,6 +39,7 @@ generate: install-mockgen
 	${MOCKGEN} -source=internal/service/report/report.go -destination=internal/service/report/mocks/report.go
 	${MOCKGEN} -source=internal/database/manager.go -destination=internal/database/mocks/manager.go
 	${MOCKGEN} -source=internal/repository/budget/repository.go -destination=internal/repository/budget/mocks/repository.go
+	${MOCKGEN} -source=internal/repository/spend/cache/repository.go -destination=internal/repository/spend/cache/mocks/repository.go
 
 lint: install-lint
 	${LINTBIN} run
