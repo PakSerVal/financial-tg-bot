@@ -12,6 +12,7 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/config"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/database"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/redis"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/budget"
 	currencyRateRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate"
 	currencyRateDB "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/db"
@@ -20,6 +21,7 @@ import (
 	selectedCurrencyDB "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/db"
 	selectedRepoInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/inmemory"
 	spendRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	redisRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/cache"
 	spendDB "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/db"
 	spendRepoInmemory "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/inmemory"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command"
@@ -59,6 +61,8 @@ func main() {
 		logger.Fatal("db connect failed:", zap.Error(err))
 	}
 
+	redisClient := redis.NewClient(cfg.RedisConfig())
+
 	sqlManager := database.NewSqlManager(db)
 
 	var currencyRepo currencyRateRepo.Repository
@@ -83,6 +87,8 @@ func main() {
 		currencyRatePuller.Pull(ctx)
 	}()
 
+	spendCache := redisRepo.New(redisClient)
+
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 
@@ -97,8 +103,8 @@ func main() {
 		logger.Fatal("db connect failed:", zap.Error(err))
 	}
 
-	reportService := report.New(spendRepo, currencyRepo, selectedCurrencyRepo)
-	msgModel := messages.New(tgClient, command.MakeChain(spendRepo, selectedCurrencyRepo, reportService, budgetRepo, sqlManager))
+	reportService := report.New(spendRepo, currencyRepo, selectedCurrencyRepo, spendCache)
+	msgModel := messages.New(tgClient, command.MakeChain(spendRepo, selectedCurrencyRepo, reportService, budgetRepo, sqlManager, spendCache))
 
 	msgModel.ListenIncomingMessages(ctx)
 }

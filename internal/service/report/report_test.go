@@ -11,6 +11,7 @@ import (
 	currencyRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	mockCurrencyRate "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/currency_rate/mocks"
 	mockSelectedCurrency "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/selected_currency/mocks"
+	mock_cache "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/cache/mocks"
 	mockSpend "gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/mocks"
 )
 
@@ -19,10 +20,13 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	sendRepo := mockSpend.NewMockRepository(ctrl)
 	currencyRateRepo := mockCurrencyRate.NewMockRepository(ctrl)
 	selectedCurrencyRepo := mockSelectedCurrency.NewMockRepository(ctrl)
+	cache := mock_cache.NewMockSpendRepo(ctrl)
 
-	service := New(sendRepo, currencyRateRepo, selectedCurrencyRepo)
+	service := New(sendRepo, currencyRateRepo, selectedCurrencyRepo, cache)
 
 	t.Run("send repo error", func(t *testing.T) {
+		cache.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return(nil, nil)
+
 		sendRepo.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return([]currencyRepo.Spend{}, errors.New("some error")).Times(1)
 		_, err := service.MakeReport(context.TODO(), 1, time.Now(), "сегодня")
 
@@ -30,7 +34,9 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	})
 
 	t.Run("no records", func(t *testing.T) {
+		cache.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return(nil, nil)
 		sendRepo.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return([]currencyRepo.Spend{}, nil).Times(1)
+		cache.EXPECT().Save(context.TODO(), gomock.Any(), gomock.Any(), []currencyRepo.Spend{}).Return(nil)
 		res, err := service.MakeReport(context.TODO(), 1, time.Now(), "сегодня")
 
 		assert.NoError(t, err)
@@ -38,7 +44,9 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	})
 
 	t.Run("selected currency repo error", func(t *testing.T) {
+		cache.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return(nil, nil)
 		sendRepo.EXPECT().GetByTimeSince(gomock.Any(), int64(1), gomock.Any()).Return([]currencyRepo.Spend{{Id: 1}}, nil).Times(1)
+		cache.EXPECT().Save(context.TODO(), gomock.Any(), gomock.Any(), []currencyRepo.Spend{{Id: 1}}).Return(nil)
 		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(context.TODO(), gomock.Any()).Return(nil, errors.New("some error")).Times(1)
 		_, err := service.MakeReport(context.TODO(), int64(1), time.Now(), "сегодня")
 
@@ -46,9 +54,27 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 	})
 
 	t.Run("currency rate repo error", func(t *testing.T) {
+		cache.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return(nil, nil)
 		sendRepo.EXPECT().GetByTimeSince(context.TODO(), int64(1), gomock.Any()).Return([]currencyRepo.Spend{{Id: 1}}, nil).Times(1)
+		cache.EXPECT().Save(context.TODO(), gomock.Any(), gomock.Any(), []currencyRepo.Spend{{Id: 1}}).Return(nil)
 		selectedCurrencyRepo.EXPECT().GetSelectedCurrency(context.TODO(), gomock.Any()).Return(&currencyRepo.SelectedCurrency{Code: "EUR"}, nil).Times(1)
 		currencyRateRepo.EXPECT().GetRateByCurrency(context.TODO(), gomock.Any()).Return(nil, errors.New("some error")).Times(1)
+		_, err := service.MakeReport(context.TODO(), int64(1), time.Now(), "сегодня")
+
+		assert.Error(t, err)
+	})
+
+	t.Run("cache get error", func(t *testing.T) {
+		cache.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return(nil, errors.New("some error"))
+		_, err := service.MakeReport(context.TODO(), int64(1), time.Now(), "сегодня")
+
+		assert.Error(t, err)
+	})
+
+	t.Run("cache set error", func(t *testing.T) {
+		cache.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return(nil, nil)
+		sendRepo.EXPECT().GetByTimeSince(context.TODO(), int64(1), gomock.Any()).Return([]currencyRepo.Spend{{Id: 1}}, nil).Times(1)
+		cache.EXPECT().Save(context.TODO(), gomock.Any(), gomock.Any(), []currencyRepo.Spend{{Id: 1}}).Return(errors.New("some error"))
 		_, err := service.MakeReport(context.TODO(), int64(1), time.Now(), "сегодня")
 
 		assert.Error(t, err)
@@ -60,10 +86,11 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 	sendRepo := mockSpend.NewMockRepository(ctrl)
 	selectedCurrencyRepo := mockSelectedCurrency.NewMockRepository(ctrl)
 	currencyRateRepo := mockCurrencyRate.NewMockRepository(ctrl)
+	cache := mock_cache.NewMockSpendRepo(ctrl)
 
-	service := New(sendRepo, currencyRateRepo, selectedCurrencyRepo)
+	service := New(sendRepo, currencyRateRepo, selectedCurrencyRepo, cache)
 
-	sendRepo.EXPECT().GetByTimeSince(context.TODO(), int64(1), gomock.Any()).Return([]currencyRepo.Spend{
+	spends := []currencyRepo.Spend{
 		{
 			Id:       1,
 			Price:    10000,
@@ -100,7 +127,11 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 			Category: "Инвестиции",
 			UserId:   1,
 		},
-	}, nil).Times(3)
+	}
+
+	cache.EXPECT().GetByTimeSince(context.TODO(), gomock.Any(), gomock.Any()).Return(nil, nil).Times(3)
+	sendRepo.EXPECT().GetByTimeSince(context.TODO(), int64(1), gomock.Any()).Return(spends, nil).Times(3)
+	cache.EXPECT().Save(context.TODO(), gomock.Any(), gomock.Any(), spends).Return(nil).Times(3)
 
 	type args struct {
 		userId int64

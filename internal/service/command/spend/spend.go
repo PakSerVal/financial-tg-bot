@@ -13,6 +13,7 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/budget"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/repository/spend/cache"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
 )
@@ -22,14 +23,16 @@ type spendCommand struct {
 	spendRepo  spend.Repository
 	sqlManager database.SqlManager
 	budgetRepo budget.Repository
+	cache      cache.SpendRepo
 }
 
-func New(next messages.Command, spendRepo spend.Repository, budgetRepo budget.Repository, manager database.SqlManager) messages.Command {
+func New(next messages.Command, spendRepo spend.Repository, budgetRepo budget.Repository, manager database.SqlManager, cache cache.SpendRepo) messages.Command {
 	return &spendCommand{
 		next:       next,
 		spendRepo:  spendRepo,
 		budgetRepo: budgetRepo,
 		sqlManager: manager,
+		cache:      cache,
 	}
 }
 
@@ -72,6 +75,11 @@ func (s *spendCommand) Process(ctx context.Context, in model.MessageIn) (*model.
 		})
 		if err != nil {
 			return nil, err
+		}
+
+		err = s.cache.DeleteForUser(ctx, in.UserId)
+		if err != nil {
+			return nil, errors.Wrap(err, "cache: deleting spends for user error")
 		}
 
 		return msgOut, nil

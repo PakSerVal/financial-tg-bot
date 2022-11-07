@@ -39,6 +39,12 @@ services:
       - ./data:/var/lib/grafana
     links:
       - prometheus
+  redis:
+    image: 'bitnami/redis:7.0.5'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6379:6379
 
 volumes:
   db:
