@@ -10,7 +10,6 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	model "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 )
 
 // MockService is a mock of Service interface.
@@ -37,10 +36,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // MakeReport mocks base method.
-func (m *MockService) MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error) {
+func (m *MockService) MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeReport", ctx, userId, timeSince, timeRangePrefix)
-	ret0, _ := ret[0].(*model.MessageOut)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

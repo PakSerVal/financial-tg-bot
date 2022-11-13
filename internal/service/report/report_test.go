@@ -40,7 +40,7 @@ func TestReportCommand_ProcessFailed(t *testing.T) {
 		res, err := service.MakeReport(context.TODO(), 1, time.Now(), "сегодня")
 
 		assert.NoError(t, err)
-		assert.Equal(t, &currencyRepo.MessageOut{Text: "Расходов сегодня нет"}, res)
+		assert.Equal(t, "Расходов сегодня нет", res)
 	})
 
 	t.Run("selected currency repo error", func(t *testing.T) {
@@ -143,7 +143,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 		in       args
 		currency string
 		rate     int64
-		wanted   *currencyRepo.MessageOut
+		wanted   string
 	}{
 		{
 			name: "today",
@@ -153,9 +153,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 			},
 			currency: "USD",
 			rate:     6010,
-			wanted: &currencyRepo.MessageOut{
-				Text: "Расходы сегодня:\nИнвестиции - 33.28 дол.\nПродукты - 18.30 дол.\nТакси - 11.65 дол.",
-			},
+			wanted:   "Расходы сегодня:\nИнвестиции - 33.28 дол.\nПродукты - 18.30 дол.\nТакси - 11.65 дол.",
 		},
 		{
 			name: "month",
@@ -165,9 +163,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 			},
 			currency: "EUR",
 			rate:     6430,
-			wanted: &currencyRepo.MessageOut{
-				Text: "Расходы в текущем месяце:\nИнвестиции - 31.10 евро.\nПродукты - 17.11 евро.\nТакси - 10.89 евро.",
-			},
+			wanted:   "Расходы в текущем месяце:\nИнвестиции - 31.10 евро.\nПродукты - 17.11 евро.\nТакси - 10.89 евро.",
 		},
 		{
 			name: "year",
@@ -177,9 +173,7 @@ func TestReportCommand_ProcessSuccess(t *testing.T) {
 			},
 			currency: "CNY",
 			rate:     876,
-			wanted: &currencyRepo.MessageOut{
-				Text: "Расходы в этом году:\nИнвестиции - 228.31 юан.\nПродукты - 125.57 юан.\nТакси - 79.91 юан.",
-			},
+			wanted:   "Расходы в этом году:\nИнвестиции - 228.31 юан.\nПродукты - 125.57 юан.\nТакси - 79.91 юан.",
 		},
 	}
 

@@ -32,7 +32,7 @@ var currencyUnitName = map[string]string{
 }
 
 type Service interface {
-	MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error)
+	MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (string, error)
 }
 
 type service struct {
@@ -56,33 +56,31 @@ func New(
 	}
 }
 
-func (r *service) MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (*model.MessageOut, error) {
+func (r *service) MakeReport(ctx context.Context, userId int64, timeSince time.Time, timeRangePrefix string) (string, error) {
 	records, err := r.spendCache.GetByTimeSince(ctx, userId, timeSince)
 	if err != nil {
-		return nil, errors.Wrap(err, "cache: get spends by time since")
+		return "", errors.Wrap(err, "cache: get spends by time since")
 	}
 
 	if records == nil {
 		records, err = r.spendRepo.GetByTimeSince(ctx, userId, timeSince)
 		if err != nil {
-			return nil, errors.Wrap(err, "spendRepo: get by time since")
+			return "", errors.Wrap(err, "spendRepo: get by time since")
 		}
 
 		err = r.spendCache.Save(ctx, userId, timeSince, records)
 		if err != nil {
-			return nil, errors.Wrap(err, "cache: saving spends error")
+			return "", errors.Wrap(err, "cache: saving spends error")
 		}
 	}
 
 	if len(records) == 0 {
-		return &model.MessageOut{
-			Text: "Расходов " + timeRangePrefix + " нет",
-		}, nil
+		return "Расходов " + timeRangePrefix + " нет", nil
 	}
 
 	cur, err := r.getSelectedCurrency(ctx, userId)
 	if err != nil {
-		return nil, errors.Wrap(err, "get selected currency error")
+		return "", errors.Wrap(err, "get selected currency error")
 	}
 
 	unitName, ok := currencyUnitName[cur]
@@ -92,7 +90,7 @@ func (r *service) MakeReport(ctx context.Context, userId int64, timeSince time.T
 
 	rate, err := r.currencyRateRepo.GetRateByCurrency(ctx, cur)
 	if err != nil {
-		return nil, errors.Wrap(err, "get currency rates error")
+		return "", errors.Wrap(err, "get currency rates error")
 	}
 
 	rateValue := int64(100)
@@ -106,9 +104,7 @@ func (r *service) MakeReport(ctx context.Context, userId int64, timeSince time.T
 	}
 	sort.Strings(msgTextParts)
 
-	return &model.MessageOut{
-		Text: "Расходы " + timeRangePrefix + ":\n" + strings.Join(msgTextParts, "\n"),
-	}, nil
+	return "Расходы " + timeRangePrefix + ":\n" + strings.Join(msgTextParts, "\n"), nil
 }
 
 func (r *service) getSelectedCurrency(ctx context.Context, userId int64) (string, error) {

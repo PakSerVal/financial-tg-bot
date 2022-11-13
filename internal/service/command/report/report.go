@@ -2,12 +2,11 @@ package report
 
 import (
 	"context"
-	"time"
 
+	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report/queue_message"
 )
 
 const (
@@ -17,47 +16,36 @@ const (
 )
 
 type reportCommand struct {
-	next          messages.Command
-	reportService report.Service
+	next         messages.Command
+	reportSender queue_message.Sender
 }
 
 func New(
 	next messages.Command,
-	reportService report.Service,
+	reportSender queue_message.Sender,
 ) messages.Command {
 	return &reportCommand{
-		next:          next,
-		reportService: reportService,
+		next:         next,
+		reportSender: reportSender,
 	}
 }
 
 func (r *reportCommand) Process(ctx context.Context, in model.MessageIn) (*model.MessageOut, error) {
-	now := time.Now()
-	switch in.Command {
-	case commandToday:
-		return r.reportService.MakeReport(
-			ctx,
-			in.UserId,
-			utils.BeginOfDay(now),
-			"сегодня",
-		)
-	case commandMonth:
-		return r.reportService.MakeReport(
-			ctx,
-			in.UserId,
-			utils.BeginOfMonth(now),
-			"в текущем месяце",
-		)
-	case commandYear:
-		return r.reportService.MakeReport(
-			ctx,
-			in.UserId,
-			utils.BeginOfYear(now),
-			"в этом году",
-		)
+	if in.Command != commandToday && in.Command != commandMonth && in.Command != commandYear {
+		return r.next.Process(ctx, in)
 	}
 
-	return r.next.Process(ctx, in)
+	msg := model.ReportMsg{
+		UserId: in.UserId,
+		Period: in.Command,
+	}
+
+	err := r.reportSender.Send(msg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return nil, nil
 }
 
 func (r *reportCommand) Name() string {

@@ -5,49 +5,46 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	currencyRepo "gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	mockMessages "gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages/mocks"
-	mock_report "gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report/mocks"
+	mock_queue_message "gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report/queue_message/mocks"
 )
 
 func TestReportCommand_ProcessFailed(t *testing.T) {
 	ctx := context.TODO()
 	ctrl := gomock.NewController(t)
 	next := mockMessages.NewMockCommand(ctrl)
-	service := mock_report.NewMockService(ctrl)
+	sender := mock_queue_message.NewMockSender(ctrl)
 
-	command := New(next, service)
+	command := New(next, sender)
 
 	t.Run("not supported", func(t *testing.T) {
-		next.EXPECT().Process(ctx, currencyRepo.MessageIn{Command: "not supported"}).Return(&currencyRepo.MessageOut{Text: "test"}, nil)
-		res, err := command.Process(ctx, currencyRepo.MessageIn{Command: "not supported"})
+		next.EXPECT().Process(ctx, model.MessageIn{Command: "not supported"}).Return(&model.MessageOut{Text: "test"}, nil)
+		res, err := command.Process(ctx, model.MessageIn{Command: "not supported"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, &currencyRepo.MessageOut{Text: "test"}, res)
+		assert.Equal(t, &model.MessageOut{Text: "test"}, res)
 	})
 
-	t.Run("today report", func(t *testing.T) {
-		service.EXPECT().MakeReport(ctx, int64(1), gomock.Any(), "сегодня").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
-		res, err := command.Process(ctx, currencyRepo.MessageIn{Command: "today", UserId: 1})
+	t.Run("sender error", func(t *testing.T) {
+		sender.EXPECT().Send(gomock.Any()).Return(errors.New("some error"))
+		res, err := command.Process(ctx, model.MessageIn{Command: "today", UserId: 1})
 
-		assert.NoError(t, err)
-		assert.Equal(t, &currencyRepo.MessageOut{Text: "test report"}, res)
+		assert.Error(t, err)
+		assert.Nil(t, res)
 	})
 
-	t.Run("month report", func(t *testing.T) {
-		service.EXPECT().MakeReport(ctx, int64(1), gomock.Any(), "в текущем месяце").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
-		res, err := command.Process(ctx, currencyRepo.MessageIn{Command: "month", UserId: 1})
+	t.Run("sender success", func(t *testing.T) {
+		sender.EXPECT().Send(model.ReportMsg{
+			UserId: 1,
+			Period: "today",
+		}).Return(nil)
+
+		res, err := command.Process(ctx, model.MessageIn{Command: "today", UserId: 1})
 
 		assert.NoError(t, err)
-		assert.Equal(t, &currencyRepo.MessageOut{Text: "test report"}, res)
-	})
-
-	t.Run("year report", func(t *testing.T) {
-		service.EXPECT().MakeReport(ctx, int64(1), gomock.Any(), "в этом году").Return(&currencyRepo.MessageOut{Text: "test report"}, nil)
-		res, err := command.Process(ctx, currencyRepo.MessageIn{Command: "year", UserId: 1})
-
-		assert.NoError(t, err)
-		assert.Equal(t, &currencyRepo.MessageOut{Text: "test report"}, res)
+		assert.Nil(t, res)
 	})
 }

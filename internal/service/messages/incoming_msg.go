@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/opentracing/opentracing-go"
-	"github.com/pkg/errors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/metrics"
@@ -76,9 +75,9 @@ func (s *Model) processMessage(ctx context.Context, command string, arguments st
 		return err
 	}
 
-	if msgOut == nil {
-		return errors.New("message result must be non-empty")
+	if msgOut != nil {
+		return s.tgClient.SendMessage(*msgOut, userId)
 	}
 
-	return s.tgClient.SendMessage(*msgOut, userId)
+	return nil
 }

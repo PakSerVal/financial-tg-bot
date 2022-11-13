@@ -13,12 +13,12 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command/start"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/command/unknown"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/messages"
-	reportService "gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
+	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report/queue_message"
 )
 
 func MakeChain(spendRepo spendRepo.Repository,
 	selectedCurrencyRepo selected_currency.Repository,
-	reportService reportService.Service,
+	reportSender queue_message.Sender,
 	budgetRepo budget.Repository,
 	sqlManager database.SqlManager,
 	spendCache cache.SpendRepo,
@@ -26,7 +26,7 @@ func MakeChain(spendRepo spendRepo.Repository,
 	unknownCmd := WithObserve(unknown.New())
 	currencyCmd := WithObserve(currency.New(unknownCmd, selectedCurrencyRepo))
 	spendCmd := WithObserve(spend.New(currencyCmd, spendRepo, budgetRepo, sqlManager, spendCache))
-	reportCmd := WithObserve(report.New(spendCmd, reportService))
+	reportCmd := WithObserve(report.New(spendCmd, reportSender))
 	budgetCmd := WithObserve(budgetCommand.New(reportCmd, budgetRepo))
 
 	return start.New(budgetCmd)
