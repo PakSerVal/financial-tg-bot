@@ -23,7 +23,6 @@ type reader struct {
 	cg      sarama.ConsumerGroup
 	topics  []string
 	handler Handler
-	cancel  context.CancelFunc
 }
 
 func NewReader(
