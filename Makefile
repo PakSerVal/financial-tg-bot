@@ -73,3 +73,14 @@ install-smartimports: bindir
 
 docker-run:
 	sudo docker compose up
+
+vendor-proto:
+		@if [ ! -d vendor.protogen/google ]; then \
+			git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis &&\
+			mkdir -p  vendor.protogen/google/ &&\
+			mv vendor.protogen/googleapis/google/api vendor.protogen/google &&\
+			rm -rf vendor.protogen/googleapis ;\
+		fi
+
+buf-gen:
+	buf generate --path api/report_service.proto

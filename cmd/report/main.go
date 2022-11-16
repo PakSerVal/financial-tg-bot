@@ -7,7 +7,6 @@ import (
 
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/config"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/database"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/generated/api"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/grpc/interceptors"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/kafka"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
@@ -25,6 +24,7 @@ import (
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report/queue_message"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/tracing"
+	api "gitlab.ozon.dev/paksergey94/telegram-bot/pkg"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

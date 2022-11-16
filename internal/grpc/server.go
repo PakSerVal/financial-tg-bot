@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/clients/tg"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/generated/api"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
+	api "gitlab.ozon.dev/paksergey94/telegram-bot/pkg"
 	"go.uber.org/zap"
 )
 

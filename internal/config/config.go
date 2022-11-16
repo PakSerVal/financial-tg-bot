@@ -74,7 +74,7 @@ type ConsumerConfig struct {
 func New() (*Config, error) {
 	c := &Config{}
 
-	flag.StringVar(&c.token, "token", "", "bot token")
+	flag.StringVar(&c.token, "token", "5332081649:AAEUJ8cGPsEaoAAFxwhqplbsDup2Rw2ez2s", "bot token")
 	flag.BoolVar(&c.useInmemory, "useInmemory", false, "inmemory usage")
 	flag.BoolVar(&c.dev, "dev", false, "Development mode")
 	flag.StringVar(&c.serviceName, "serviceName", "telegram bot", "Service name")

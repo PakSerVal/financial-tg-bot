@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/generated/api"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/kafka"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/logger"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/model"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/service/report"
 	"gitlab.ozon.dev/paksergey94/telegram-bot/internal/utils"
+	api "gitlab.ozon.dev/paksergey94/telegram-bot/pkg"
 	"go.uber.org/zap"
 )
 
